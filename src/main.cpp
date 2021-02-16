@@ -15,6 +15,11 @@ public:
     virtual bool OnInit();
 };
 
+class DropTarget : public wxFileDropTarget
+{
+    bool OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames);
+};
+
 class FrameMain : public wxFrame //, wxFileDropTarget
 {
 public:
@@ -59,7 +64,8 @@ bool App::OnInit()
 FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(nullptr, wxID_ANY, title, pos, size)
 {
-    SetMinSize(wxSize(150, 100));
+    // SetMinSize(wxSize(150, 100));
+    SetMinSize(wxSize(500, 200));
 
     // menu bar [wxMenuBar, wxMenu, (wxMenuItem)]
     wxMenu *menuFile = new wxMenu;
@@ -76,33 +82,37 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
     menuBar->Append(menuHelp, _("&Help"));
     SetMenuBar(menuBar);
 
-    // main panel / sizers --- KEEP?
+    // main panel
     wxPanel *panelMain = new wxPanel(this, wxID_ANY);
-    panelMain->SetBackgroundColour("black");
 
     // buttons
     wxButton *buttonConvert = new wxButton(panelMain, ID_Convert, _("Convert"), wxDefaultPosition, wxSize(100, 20));
     buttonConvert->SetDefault();
     wxButton *buttonClear = new wxButton(panelMain, ID_Clear, _("Clear"), wxDefaultPosition, wxSize(50, 20));
 
-    wxBoxSizer *sizerHorziontalButtons = new wxBoxSizer(wxHORIZONTAL);
-    sizerHorziontalButtons->AddStretchSpacer();
-    sizerHorziontalButtons->Add(buttonClear, 0, wxLEFT | wxTOP | wxBOTTOM | wxRIGHT, 10);
-    sizerHorziontalButtons->Add(buttonConvert, 0, wxTOP | wxBOTTOM | wxRIGHT, 10);
-
     // list
     wxListCtrl *listCtrl = new wxListCtrl(panelMain, wxID_ANY, wxDefaultPosition, wxSize(500, 300), wxLC_REPORT);
     listCtrl->AppendColumn(_("File"), wxLIST_FORMAT_LEFT, 300);
     listCtrl->AppendColumn(_("Status"), wxLIST_FORMAT_CENTER, 100);
 
-    // main sizer
-    wxBoxSizer *sizerVerticalMain = new wxBoxSizer(wxVERTICAL);
-    sizerVerticalMain->Add(listCtrl, 1, wxEXPAND);
-    sizerVerticalMain->Add(sizerHorziontalButtons, 1, wxEXPAND);
-    panelMain->SetSizerAndFit(sizerVerticalMain);
+    // sizers
+    wxBoxSizer *sizerVertMain = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *sizerHorMain = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *sizerHorButtons = new wxBoxSizer(wxHORIZONTAL);
+
+    sizerHorMain->Add(listCtrl, 1, wxEXPAND);
+    sizerVertMain->Add(sizerHorMain, 1, wxEXPAND);
+
+    sizerHorButtons->Add(buttonClear, 0, wxRIGHT, 10);
+    sizerHorButtons->Add(buttonConvert);
+
+    sizerVertMain->Add(sizerHorButtons, 0, wxALIGN_RIGHT | wxALL, 10);
+
+    panelMain->SetSizer(sizerVertMain);
 
     // drag-n-drop
     //SetDropTarget(this);
+    panelMain->SetDropTarget(new DropTarget);
 
     // status bar
     CreateStatusBar();
@@ -162,6 +172,12 @@ void FrameMain::OnOpen(wxCommandEvent &event)
     wxString displayList = "";
     std::for_each(fileList.begin(), fileList.end(), [&displayList](const wxString f) { displayList.Append(f);  displayList.Append("\n"); });
     wxLogMessage(displayList);
+}
+
+bool DropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames)
+{
+    wxLogMessage("blah!");
+    return true;
 }
 
 // FIXME: crashes on exit
