@@ -8,6 +8,7 @@
 #include <wx/filedlg.h>
 #include <wx/listctrl.h>
 #include <algorithm>
+#include <functional>
 
 class App : public wxApp
 {
@@ -17,7 +18,13 @@ public:
 
 class DropTarget : public wxFileDropTarget
 {
+public:
+    void SetCallback(std::function<void(wxString)> callback);
+
+private:
     bool OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames);
+    std::function<void(wxString)> m_callback;
+    // wxArrayString m_fileNames; // + get
 };
 
 class FrameMain : public wxFrame //, wxFileDropTarget
@@ -25,6 +32,8 @@ class FrameMain : public wxFrame //, wxFileDropTarget
 public:
     FrameMain(const wxString &title, const wxPoint &pos, const wxSize &size);
     //virtual bool OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames);
+    void FillListCtrl(wxString file);
+    // void FillListCtrl(wxArrayString fileList);
 
 private:
     void OnConvert(wxCommandEvent &event);
@@ -32,6 +41,8 @@ private:
     void OnClear(wxCommandEvent &event);
     void OnExit(wxCommandEvent &event);
     void OnAbout(wxCommandEvent &event);
+
+    wxListCtrl *m_listCtrl = nullptr;
 
     wxDECLARE_EVENT_TABLE();
 };
@@ -91,16 +102,17 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
     wxButton *buttonClear = new wxButton(panelMain, ID_Clear, _("Clear"), wxDefaultPosition, wxSize(50, 20));
 
     // list
-    wxListCtrl *listCtrl = new wxListCtrl(panelMain, wxID_ANY, wxDefaultPosition, wxSize(500, 300), wxLC_REPORT);
-    listCtrl->AppendColumn(_("File"), wxLIST_FORMAT_LEFT, 300);
-    listCtrl->AppendColumn(_("Status"), wxLIST_FORMAT_CENTER, 100);
+    // wxListCtrl *listCtrl = new wxListCtrl(panelMain, wxID_ANY, wxDefaultPosition, wxSize(500, 300), wxLC_REPORT);
+    m_listCtrl = new wxListCtrl(panelMain, wxID_ANY, wxDefaultPosition, wxSize(500, 300), wxLC_REPORT);
+    m_listCtrl->AppendColumn(_("File"), wxLIST_FORMAT_LEFT, 300);
+    m_listCtrl->AppendColumn(_("Status"), wxLIST_FORMAT_CENTER, 100);
 
     // sizers
     wxBoxSizer *sizerVertMain = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *sizerHorMain = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *sizerHorButtons = new wxBoxSizer(wxHORIZONTAL);
 
-    sizerHorMain->Add(listCtrl, 1, wxEXPAND);
+    sizerHorMain->Add(m_listCtrl, 1, wxEXPAND);
     sizerVertMain->Add(sizerHorMain, 1, wxEXPAND);
 
     sizerHorButtons->Add(buttonClear, 0, wxRIGHT, 10);
@@ -111,8 +123,12 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
     panelMain->SetSizer(sizerVertMain);
 
     // drag-n-drop
-    //SetDropTarget(this);
-    panelMain->SetDropTarget(new DropTarget);
+    // SetDropTarget(this);
+    // panelMain->SetDropTarget(new DropTarget);
+
+    DropTarget *dropTarget = new DropTarget();
+    panelMain->SetDropTarget(dropTarget);
+    dropTarget->SetCallback(std::bind(&FrameMain::FillListCtrl, this, std::placeholders::_1));
 
     // status bar
     CreateStatusBar();
@@ -176,9 +192,51 @@ void FrameMain::OnOpen(wxCommandEvent &event)
 
 bool DropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames)
 {
-    wxLogMessage("blah!");
+    wxString filesList = "";
+    for (auto file = 0; file < filenames.GetCount(); ++file)
+    {
+        auto lastLetter = filenames[file].rbegin();
+        std::string fileExtension = "";
+        for (auto iter = lastLetter; *iter != '.'; ++iter)
+        {
+            fileExtension.push_back(*iter);
+        }
+        std::reverse(fileExtension.begin(), fileExtension.end());
+        if (fileExtension == "wav" || fileExtension == "m4a")
+        {
+            filesList.Append(filenames[file]);
+            filesList.Append("\n");
+        }
+    }
+
+    if (filesList.IsEmpty())
+    {
+        wxMessageBox("No valid files, must be *.wav (or *.m4a).",
+                     "Files - ERROR", wxOK | wxICON_INFORMATION);
+        return false;
+    }
+    // wxMessageBox(filesList,
+    //              "Files", wxOK | wxICON_INFORMATION);
+    if (m_callback)
+    {
+        m_callback(filesList);
+    }
     return true;
 }
+
+void DropTarget::SetCallback(std::function<void(wxString)> callback)
+{
+    m_callback = callback;
+}
+
+void FrameMain::FillListCtrl(wxString file)
+{
+    m_listCtrl->InsertItem(m_listCtrl->GetItemCount(), file);
+}
+// void FrameMain::FillListCtrl(wxArrayString fileList)
+// {
+//     m_listCtrl->InsertItem(m_listCtrl->GetItemCount(), fileList);
+// }
 
 // FIXME: crashes on exit
 // bool FrameMain::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames)
