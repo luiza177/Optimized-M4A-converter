@@ -14,7 +14,10 @@ set(wxWidgets_USE_STATIC 1)
 
 find_package(wxWidgets REQUIRED)
 
-set(SRCS main.cpp)
+# set(SRCS main.cpp)
+set(SRCS App.cpp FrameMain.cpp )
+
+# include_directories(../include)
 
 include(${wxWidgets_USE_FILE})
 
