@@ -9,6 +9,7 @@
 #include "DropTarget.h"
 #include <wx/filedlg.h>
 #include <wx/listctrl.h>
+#include <wx/process.h>
 
 enum
 {
@@ -31,6 +32,8 @@ private:
     void OnAbout(wxCommandEvent &event);
     void OnKeyDown(wxKeyEvent &event);
     void UpdateStatusBar();
+
+    wxProcess *m_ffmpeg = nullptr;
 
     wxListView *m_listCtrl = nullptr;
     wxArrayString m_validFileList;

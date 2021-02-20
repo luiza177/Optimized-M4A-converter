@@ -59,6 +59,8 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
     // status bar
     CreateStatusBar();
     SetStatusText("0 files");
+
+    m_ffmpeg = new wxProcess(this, wxID_ANY);
 }
 
 void FrameMain::OnExit(wxCommandEvent &event)
@@ -75,8 +77,11 @@ void FrameMain::OnAbout(wxCommandEvent &event)
 
 void FrameMain::OnConvert(wxCommandEvent &event)
 {
+    //TODO: always overwrite flag
+    wxString ffmpegCommand = "ffmpeg -i \"/Users/luizacarvalho/Downloads/The Heart of the Buddhas Teaching - Rosalind.wav\" -movflags +faststart -c:a aac -b:a 128000 \"/Users/luizacarvalho/Downloads/The Heart of the Buddhas Teaching - Rosalind.m4a\"";
+    wxArrayString output;
+    wxExecute(ffmpegCommand, wxEXEC_ASYNC, m_ffmpeg);
     PushStatusText(_("DONE!"));
-    // PopStatusText();
 }
 
 void FrameMain::OnClear(wxCommandEvent &event)
@@ -124,12 +129,11 @@ void FrameMain::UpdateStatusBar()
 
 void FrameMain::OnKeyDown(wxKeyEvent &event)
 {
-    event.Skip();
+    event.Skip(); // needs to be here to work
     auto key = event.GetKeyCode();
     if (key == WXK_DELETE) //|| key == WXK_BACK)
     {
-        // m_listCtrl->GetItem()
-        auto selectedIdx = m_listCtrl->GetFirstSelected();
+        auto selectedIdx = m_listCtrl->GetFirstSelected(); // TODO: understand this
         while (selectedIdx > -1)
         {
             m_listCtrl->DeleteItem(selectedIdx);
@@ -139,9 +143,15 @@ void FrameMain::OnKeyDown(wxKeyEvent &event)
     }
 }
 
-//TODO: update name --> listView
-//TODO: padding listctrl ??
+//TODO: update name --> listView, no --> m_fileList
+//TODO: convert actual files
+//TODO: wxProcess end handler
+//TODO: get exit code
+//TODO: kill process on close
+//TODO: capture stdout
+
 //TODO: drag n drop directories
-//TODO: check if already exists
+//TODO: padding listctrl ??
+//TODO: check if already exists --> std::map or std::set
 //TODO: File column stretch on window resize (always width - 100, for other column)
 //TODO: ellipsize from left listctrl item

@@ -21,6 +21,14 @@ private:
         wxArrayString validFilesList;
         for (auto file = 0; file < filenames.GetCount(); ++file)
         {
+            // auto name = filenames[file];
+            // name.find_last_of(".")
+
+            /* check is_directory ? */
+            /* pode / nao pode? */
+            /* ou pega lista de arquivos do diretorio e processa */
+
+            /* extract into a new function that takes file name as input */
             auto lastLetter = filenames[file].rbegin();
             std::string fileExtension = "";
             for (auto iter = lastLetter; *iter != '.'; ++iter)
