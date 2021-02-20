@@ -29,10 +29,10 @@ private:
     void OnClear(wxCommandEvent &event);
     void OnExit(wxCommandEvent &event);
     void OnAbout(wxCommandEvent &event);
-    // void OnDeleteItem(wxListEvent &event);
+    void OnKeyDown(wxKeyEvent &event);
     void UpdateStatusBar();
 
-    wxListCtrl *m_listCtrl = nullptr;
+    wxListView *m_listCtrl = nullptr;
     wxArrayString m_validFileList;
 
     wxDECLARE_EVENT_TABLE();

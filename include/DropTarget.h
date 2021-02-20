@@ -49,4 +49,6 @@ private:
     }
 };
 
+//TODO: wxValidator?
+//TODO: override OnDrop to check for directories??
 #endif

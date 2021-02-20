@@ -3,5 +3,9 @@
         "editor.defaultFormatter": "ms-vscode.cpptools",
         "editor.tabSize": 4,
         "editor.formatOnSave": true
+    },
+    "files.associations": {
+        "**/REAPER/Effects/**": "eel2",
+        "functional": "cpp"
     }
 }

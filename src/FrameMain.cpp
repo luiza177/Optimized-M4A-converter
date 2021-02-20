@@ -4,6 +4,8 @@
 FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(nullptr, wxID_ANY, title, pos, size)
 {
+    SetMinSize(wxSize(500, 200)); //? Move to panel creation
+
     // menu bar [wxMenuBar, wxMenu, (wxMenuItem)]
     wxMenu *menuFile = new wxMenu;
     menuFile->Append(ID_Convert, _("&Convert...\tCtrl-Shift-C"), _("Convert shown files")); // "\t" tells a shortcut will follow
@@ -21,16 +23,6 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
 
     // main panel
     wxPanel *panelMain = new wxPanel(this, wxID_ANY);
-    SetMinSize(wxSize(500, 200));
-
-    // drag-n-drop
-    DropTarget *dropTarget = new DropTarget();
-    panelMain->SetDropTarget(dropTarget);
-    dropTarget->SetCallback(std::bind(&FrameMain::FillListCtrl, this, std::placeholders::_1)); // can't just say FrameMain::FillListCtrl
-
-    // status bar
-    CreateStatusBar();
-    SetStatusText("0 files");
 
     // buttons
     wxButton *buttonConvert = new wxButton(panelMain, ID_Convert, _("Convert"), wxDefaultPosition, wxSize(100, 20));
@@ -38,7 +30,9 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
     wxButton *buttonClear = new wxButton(panelMain, ID_Clear, _("Clear"), wxDefaultPosition, wxSize(50, 20));
 
     // list
-    m_listCtrl = new wxListCtrl(panelMain, wxID_ANY, wxDefaultPosition, wxSize(500, 300), wxLC_REPORT);
+    m_listCtrl = new wxListView(panelMain, wxID_ANY, wxDefaultPosition, wxSize(500, 300), wxLC_REPORT);
+    m_listCtrl->Bind(wxEVT_KEY_DOWN, wxKeyEventHandler(FrameMain::OnKeyDown), this);
+
     m_listCtrl->AppendColumn(_("File"), wxLIST_FORMAT_LEFT, 400);
     m_listCtrl->AppendColumn(_("Status"), wxLIST_FORMAT_CENTER, 100);
 
@@ -55,7 +49,16 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
 
     sizerVertMain->Add(sizerHorButtons, 0, wxALIGN_RIGHT | wxALL, 10);
 
-    panelMain->SetSizerAndFit(sizerVertMain);
+    panelMain->SetSizer(sizerVertMain); //? move to end after status bar and change to AndFit
+
+    // drag-n-drop
+    DropTarget *dropTarget = new DropTarget();
+    panelMain->SetDropTarget(dropTarget);
+    dropTarget->SetCallback(std::bind(&FrameMain::FillListCtrl, this, std::placeholders::_1)); // can't just say FrameMain::FillListCtrl
+
+    // status bar
+    CreateStatusBar();
+    SetStatusText("0 files");
 }
 
 void FrameMain::OnExit(wxCommandEvent &event)
@@ -119,22 +122,26 @@ void FrameMain::UpdateStatusBar()
     }
 }
 
-// void FrameMain::OnDeleteItem(wxListEvent &event)
-// {
-//     std::cout << "blah\n";
-//     if (m_listCtrl->GetItemCount())
-//     {
-//         std::cout << event.GetId();
-//         m_listCtrl->DeleteItem(event.GetId());
-//     }
-//     else
-//     {
-//         wxLogMessage(_("Nothing to delete"));
-//     }
-// }
-//TODO: check if already exists
-//TODO: padding listctrl text
-//TODO: ellipsize from left listctrl item
-//TODO: implement ability to delete file list
+void FrameMain::OnKeyDown(wxKeyEvent &event)
+{
+    event.Skip();
+    auto key = event.GetKeyCode();
+    if (key == WXK_DELETE) //|| key == WXK_BACK)
+    {
+        // m_listCtrl->GetItem()
+        auto selectedIdx = m_listCtrl->GetFirstSelected();
+        while (selectedIdx > -1)
+        {
+            m_listCtrl->DeleteItem(selectedIdx);
+            selectedIdx = m_listCtrl->GetNextSelected(-1);
+        }
+        event.Skip(false);
+    }
+}
+
+//TODO: update name --> listView
+//TODO: padding listctrl ??
 //TODO: drag n drop directories
-//TODO: onResize adjust column width
+//TODO: check if already exists
+//TODO: File column stretch on window resize (always width - 100, for other column)
+//TODO: ellipsize from left listctrl item
