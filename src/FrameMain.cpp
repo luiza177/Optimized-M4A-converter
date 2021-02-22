@@ -25,13 +25,13 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
     wxPanel *panelMain = new wxPanel(this, wxID_ANY);
 
     // buttons
-    wxButton *buttonConvert = new wxButton(panelMain, ID_Convert, _("Convert"), wxDefaultPosition, wxSize(100, 20));
-    buttonConvert->SetDefault();
-    wxButton *buttonClear = new wxButton(panelMain, ID_Clear, _("Clear"), wxDefaultPosition, wxSize(50, 20));
+    m_buttonConvert = new wxButton(panelMain, ID_Convert, _("Convert"), wxDefaultPosition, wxSize(100, 20));
+    m_buttonConvert->SetDefault();
+    m_buttonClear = new wxButton(panelMain, ID_Clear, _("Clear"), wxDefaultPosition, wxSize(70, 20));
 
     // list
     m_fileList = new wxListView(panelMain, wxID_ANY, wxDefaultPosition, wxSize(500, 300), wxLC_REPORT);
-    m_fileList->Bind(wxEVT_KEY_DOWN, wxKeyEventHandler(FrameMain::OnKeyDown), this);
+    m_fileList->Bind(wxEVT_KEY_DOWN, wxKeyEventHandler(FrameMain::OnKeyDown), this); //why?
 
     m_fileList->AppendColumn(_("File"), wxLIST_FORMAT_LEFT, 400);
     m_fileList->AppendColumn(_("Status"), wxLIST_FORMAT_CENTER, 100);
@@ -44,8 +44,8 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
     sizerHorMain->Add(m_fileList, 1, wxEXPAND);
     sizerVertMain->Add(sizerHorMain, 1, wxEXPAND);
 
-    sizerHorButtons->Add(buttonClear, 0, wxRIGHT, 10);
-    sizerHorButtons->Add(buttonConvert);
+    sizerHorButtons->Add(m_buttonClear, 0, wxRIGHT, 10);
+    sizerHorButtons->Add(m_buttonConvert);
 
     sizerVertMain->Add(sizerHorButtons, 0, wxALIGN_RIGHT | wxALL, 10);
 
@@ -75,7 +75,6 @@ void FrameMain::OnAbout(wxCommandEvent &event)
                  wxOK | wxICON_INFORMATION);
 }
 
-//TODO: generate output, nix the extra parameter
 wxString FrameMain::GenerateFfmpegCommand(wxString inputFile)
 {
     wxString ffmpegCommand = "ffmpeg -y -i \""; // -y flag is always overwrite
@@ -93,17 +92,36 @@ wxString FrameMain::GenerateFfmpegCommand(wxString inputFile)
 
 void FrameMain::OnConvert(wxCommandEvent &event)
 {
-    //for each listctrl item do
-    wxString ffmpegCommand = GenerateFfmpegCommand("/Users/luizacarvalho/Downloads/The Heart of the Buddha's Teaching - Oliver.wav");
-    wxArrayString output;
-    wxExecute(ffmpegCommand, wxEXEC_ASYNC, m_ffmpeg);
-    // PushStatusText(_("DONE!"));
+    if (m_fileList->GetItemCount() > 0)
+    {
+        //for each listctrl item do
+
+        wxString ffmpegCommand = GenerateFfmpegCommand(m_fileList->GetItemText(0));
+        // wxArrayString output;
+        m_buttonConvert->Disable();
+        m_buttonClear->SetLabel(_("Cancel"));
+        m_ffmpegPID = wxExecute(ffmpegCommand, wxEXEC_ASYNC, m_ffmpeg);
+    }
+    else
+    {
+        wxLogMessage(_("Nothing to convert!"));
+    }
 }
 
 void FrameMain::OnClear(wxCommandEvent &event)
 {
-    m_fileList->DeleteAllItems();
-    PopStatusText();
+
+    if (m_ffmpeg->Exists(m_ffmpegPID))
+    {
+        wxKillError *err;
+        wxKill(m_ffmpegPID, wxSIGTERM, err);
+        // TODO: delete residue?
+    }
+    else
+    {
+        m_fileList->DeleteAllItems();
+        PopStatusText();
+    }
 }
 
 void FrameMain::OnOpen(wxCommandEvent &event)
@@ -159,11 +177,15 @@ void FrameMain::OnKeyDown(wxKeyEvent &event)
     }
 }
 
+void FrameMain::OnConversionEnd(wxProcessEvent &event)
+{
+    PushStatusText(_("DONE!"));
+    m_buttonConvert->Enable();
+    m_buttonClear->SetLabel(_("Clear"));
+}
+
 //MVP
 //TODO: drag n drop directories
-//TODO: convert actual files
-//TODO: wxProcess end handler
-//TODO: kill process on close --> wxKill or wxExit??
 
 //FUNCTIONAL
 //TODO: capture stdout (or stderr)

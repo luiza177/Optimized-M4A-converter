@@ -33,11 +33,15 @@ private:
     void OnKeyDown(wxKeyEvent &event);
     void UpdateStatusBar();
     wxString GenerateFfmpegCommand(wxString inputFile);
+    void OnConversionEnd(wxProcessEvent &event);
 
     wxProcess *m_ffmpeg = nullptr;
 
     wxListView *m_fileList = nullptr;
+    wxButton *m_buttonConvert = nullptr;
+    wxButton *m_buttonClear = nullptr;
     wxArrayString m_validFileList;
+    long m_ffmpegPID;
 
     wxDECLARE_EVENT_TABLE();
 };
