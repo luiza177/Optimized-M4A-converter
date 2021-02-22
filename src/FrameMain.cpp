@@ -30,18 +30,18 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
     wxButton *buttonClear = new wxButton(panelMain, ID_Clear, _("Clear"), wxDefaultPosition, wxSize(50, 20));
 
     // list
-    m_listCtrl = new wxListView(panelMain, wxID_ANY, wxDefaultPosition, wxSize(500, 300), wxLC_REPORT);
-    m_listCtrl->Bind(wxEVT_KEY_DOWN, wxKeyEventHandler(FrameMain::OnKeyDown), this);
+    m_fileList = new wxListView(panelMain, wxID_ANY, wxDefaultPosition, wxSize(500, 300), wxLC_REPORT);
+    m_fileList->Bind(wxEVT_KEY_DOWN, wxKeyEventHandler(FrameMain::OnKeyDown), this);
 
-    m_listCtrl->AppendColumn(_("File"), wxLIST_FORMAT_LEFT, 400);
-    m_listCtrl->AppendColumn(_("Status"), wxLIST_FORMAT_CENTER, 100);
+    m_fileList->AppendColumn(_("File"), wxLIST_FORMAT_LEFT, 400);
+    m_fileList->AppendColumn(_("Status"), wxLIST_FORMAT_CENTER, 100);
 
     // sizers
     wxBoxSizer *sizerVertMain = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *sizerHorMain = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *sizerHorButtons = new wxBoxSizer(wxHORIZONTAL);
 
-    sizerHorMain->Add(m_listCtrl, 1, wxEXPAND);
+    sizerHorMain->Add(m_fileList, 1, wxEXPAND);
     sizerVertMain->Add(sizerHorMain, 1, wxEXPAND);
 
     sizerHorButtons->Add(buttonClear, 0, wxRIGHT, 10);
@@ -60,7 +60,7 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
     CreateStatusBar();
     SetStatusText("0 files");
 
-    m_ffmpeg = new wxProcess(this, wxID_ANY);
+    m_ffmpeg = new wxProcess(this, ID_FFMPEG);
 }
 
 void FrameMain::OnExit(wxCommandEvent &event)
@@ -75,18 +75,34 @@ void FrameMain::OnAbout(wxCommandEvent &event)
                  wxOK | wxICON_INFORMATION);
 }
 
+//TODO: generate output, nix the extra parameter
+wxString FrameMain::GenerateFfmpegCommand(wxString inputFile)
+{
+    wxString ffmpegCommand = "ffmpeg -y -i \""; // -y flag is always overwrite
+    //TODO: create folder for output
+    std::string outputFile = inputFile.ToStdString();
+    //TODO: refactor
+    outputFile.pop_back();
+    outputFile.pop_back();
+    outputFile.pop_back();
+    outputFile.append("m4a");
+    wxString ffmpegFlags = "\" -movflags +faststart -c:a aac -b:a 128000 \"";
+    ffmpegCommand += inputFile + ffmpegFlags + _(outputFile) + "\"";
+    return ffmpegCommand;
+}
+
 void FrameMain::OnConvert(wxCommandEvent &event)
 {
-    //TODO: always overwrite flag
-    wxString ffmpegCommand = "ffmpeg -i \"/Users/luizacarvalho/Downloads/The Heart of the Buddhas Teaching - Rosalind.wav\" -movflags +faststart -c:a aac -b:a 128000 \"/Users/luizacarvalho/Downloads/The Heart of the Buddhas Teaching - Rosalind.m4a\"";
+    //for each listctrl item do
+    wxString ffmpegCommand = GenerateFfmpegCommand("/Users/luizacarvalho/Downloads/The Heart of the Buddha's Teaching - Oliver.wav");
     wxArrayString output;
     wxExecute(ffmpegCommand, wxEXEC_ASYNC, m_ffmpeg);
-    PushStatusText(_("DONE!"));
+    // PushStatusText(_("DONE!"));
 }
 
 void FrameMain::OnClear(wxCommandEvent &event)
 {
-    m_listCtrl->DeleteAllItems();
+    m_fileList->DeleteAllItems();
     PopStatusText();
 }
 
@@ -110,19 +126,19 @@ void FrameMain::OnOpen(wxCommandEvent &event)
 
 void FrameMain::FillListCtrl(wxArrayString fileList)
 {
-    std::for_each(fileList.begin(), fileList.end(), [this](wxString file) { this->m_listCtrl->InsertItem(0, file); });
+    std::for_each(fileList.begin(), fileList.end(), [this](wxString file) { this->m_fileList->InsertItem(0, file); });
     UpdateStatusBar();
 }
 
 void FrameMain::UpdateStatusBar()
 {
-    if (m_listCtrl->GetItemCount() == 1)
+    if (m_fileList->GetItemCount() == 1)
     {
         PushStatusText(_("1 file"));
     }
     else
     {
-        wxString filesNumber = wxString::Format(wxT("%d files"), m_listCtrl->GetItemCount());
+        wxString filesNumber = wxString::Format(wxT("%d files"), m_fileList->GetItemCount());
         PushStatusText(filesNumber);
     }
 }
@@ -133,25 +149,30 @@ void FrameMain::OnKeyDown(wxKeyEvent &event)
     auto key = event.GetKeyCode();
     if (key == WXK_DELETE) //|| key == WXK_BACK)
     {
-        auto selectedIdx = m_listCtrl->GetFirstSelected(); // TODO: understand this
+        auto selectedIdx = m_fileList->GetFirstSelected(); // TODO: understand this
         while (selectedIdx > -1)
         {
-            m_listCtrl->DeleteItem(selectedIdx);
-            selectedIdx = m_listCtrl->GetNextSelected(-1);
+            m_fileList->DeleteItem(selectedIdx);
+            selectedIdx = m_fileList->GetNextSelected(-1);
         }
         event.Skip(false);
     }
 }
 
-//TODO: update name --> listView, no --> m_fileList
+//MVP
+//TODO: drag n drop directories
 //TODO: convert actual files
 //TODO: wxProcess end handler
-//TODO: get exit code
-//TODO: kill process on close
-//TODO: capture stdout
+//TODO: kill process on close --> wxKill or wxExit??
 
-//TODO: drag n drop directories
-//TODO: padding listctrl ??
+//FUNCTIONAL
+//TODO: capture stdout (or stderr)
+//TODO: get exit code
+
+//FUTURE
 //TODO: check if already exists --> std::map or std::set
+
+//COSMETIC
+//TODO: padding listctrl ??
 //TODO: File column stretch on window resize (always width - 100, for other column)
 //TODO: ellipsize from left listctrl item

@@ -13,9 +13,9 @@
 
 enum
 {
-    ID_Convert = 1,
+    ID_Convert = wxID_LAST + 1,
     ID_Clear,
-    ID_DeleteItem
+    ID_FFMPEG
 };
 
 class FrameMain : public wxFrame
@@ -32,10 +32,11 @@ private:
     void OnAbout(wxCommandEvent &event);
     void OnKeyDown(wxKeyEvent &event);
     void UpdateStatusBar();
+    wxString GenerateFfmpegCommand(wxString inputFile);
 
     wxProcess *m_ffmpeg = nullptr;
 
-    wxListView *m_listCtrl = nullptr;
+    wxListView *m_fileList = nullptr;
     wxArrayString m_validFileList;
 
     wxDECLARE_EVENT_TABLE();

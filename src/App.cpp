@@ -19,6 +19,5 @@ wxBEGIN_EVENT_TABLE(FrameMain, wxFrame)
     EVT_MENU(wxID_OPEN, FrameMain::OnOpen)
     EVT_BUTTON(ID_Convert, FrameMain::OnConvert)
     EVT_BUTTON(ID_Clear, FrameMain::OnClear)
-    // EVT_LIST_DELETE_ITEM(ID_DeleteItem, FrameMain::OnDeleteItem)
 wxEND_EVENT_TABLE()
 wxIMPLEMENT_APP(App);
