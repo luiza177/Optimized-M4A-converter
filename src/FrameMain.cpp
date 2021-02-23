@@ -75,15 +75,12 @@ void FrameMain::OnAbout(wxCommandEvent &event)
 
 wxString FrameMain::GenerateFfmpegCommand(wxString inputFile)
 {
+    auto outputFile = inputFile;
+    auto extension = inputFile.find_last_of('.');
+    outputFile.replace(extension, 4, ".m4a");
     //TODO: use relative path for an executable
-    wxString ffmpegCommand = "ffmpeg -y -i \""; // -y flag is always overwrite
     //TODO: create folder for output
-    std::string outputFile = inputFile.ToStdString();
-    //TODO: refactor --> find_last_of, then replace
-    outputFile.pop_back();
-    outputFile.pop_back();
-    outputFile.pop_back();
-    outputFile.append("m4a");
+    wxString ffmpegCommand = "ffmpeg -y -i \""; // -y flag is always overwrite
     wxString ffmpegFlags = "\" -movflags +faststart -c:a aac -b:a 128000 \"";
     ffmpegCommand += inputFile + ffmpegFlags + _(outputFile) + "\"";
     return ffmpegCommand;

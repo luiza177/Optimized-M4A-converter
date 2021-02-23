@@ -18,39 +18,17 @@ public:
 private:
     std::function<void(wxArrayString)> m_callback;
 
-    bool IsValidFile(wxString file)
-    {
-        //? file.find_last_of(".");
-        // TODO: use wxString functions
-        auto lastLetter = file.rbegin();
-        std::string fileExtension = "";
-        for (auto iter = lastLetter; *iter != '.'; ++iter)
-        {
-            if (*iter == '/' || *iter == '\\')
-            {
-                //! Directories are not accepted //TODO: deal with directory
-                // if (wxDirExists(file))
-                // {
-                return false;
-                // }
-            }
-            fileExtension.push_back(*iter);
-        }
-        std::reverse(fileExtension.begin(), fileExtension.end());
-
-        return (fileExtension == "wav" || fileExtension == "m4a");
-    }
-
     bool OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames)
     {
         wxArrayString validFilesList;
         for (auto file = 0; file < filenames.GetCount(); ++file)
         {
-            auto fileName = filenames[file];
-            if (IsValidFile(fileName))
+            auto filePath = filenames[file];
+            if (filePath.EndsWith(_(".wav")) || filePath.EndsWith(_(".m4a")))
             {
-                validFilesList.Add(fileName);
+                validFilesList.Add(filePath);
             }
+            // else if (wxDirExists(filePath)) { add all valid files }
         }
 
         if (validFilesList.IsEmpty())
