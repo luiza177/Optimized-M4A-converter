@@ -43,6 +43,7 @@ private:
     void Convert();
     void OnConversionEnd(wxProcessEvent &event);
     void CreateProcessQueue();
+    wxString GetResourcesDir();
 
     wxProcess *m_ffmpeg = nullptr;
 

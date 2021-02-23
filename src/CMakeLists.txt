@@ -22,15 +22,16 @@ set(SRCS App.cpp FrameMain.cpp )
 include(${wxWidgets_USE_FILE})
 
 if (APPLE)
+    find_library(FoundationLib CoreFoundation)
     # create bundle on apple compiles
-    add_executable(main MACOSX_BUNDLE ${SRCS} )
+    add_executable(Optimized_M4A_Converter MACOSX_BUNDLE ${SRCS} )
     # Set a custom plist file for the app bundle - needed for Mac OS Retina display
-    set_target_properties(main PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist)
+    set_target_properties(Optimized_M4A_Converter PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist)
 else()
     # the WIN32 is needed for Windows in order for it to look for WinMain
     # instead of the main function. This is ignored on other systems,
     # so it works on all platforms
-    add_executable(main WIN32 ${SRCS})
+    add_executable(Optimized_M4A_Converter WIN32 ${SRCS})
 endif()
 
-target_link_libraries(main PRIVATE ${wxWidgets_LIBRARIES})
+target_link_libraries(Optimized_M4A_Converter PRIVATE ${wxWidgets_LIBRARIES})

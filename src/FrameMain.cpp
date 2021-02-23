@@ -1,5 +1,6 @@
 #include "../include/FrameMain.h"
-#include <iostream>
+// #include <iostream>
+#include <CoreFoundation/CoreFoundation.h>
 
 FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(nullptr, wxID_ANY, title, pos, size)
@@ -73,13 +74,34 @@ void FrameMain::OnAbout(wxCommandEvent &event)
                  wxOK | wxICON_INFORMATION);
 }
 
+wxString FrameMain::GetResourcesDir()
+{
+    auto mainBundle = CFBundleGetMainBundle();
+    auto resourcesUrl = CFBundleCopyResourcesDirectoryURL(mainBundle);
+
+    char resourcesPathCstr[1024];
+    if (!CFURLGetFileSystemRepresentation(resourcesUrl, TRUE, (UInt8 *)resourcesPathCstr, 1024))
+    {
+        // something went wrong
+        // abort app?
+    }
+    CFRelease(resourcesUrl);
+
+    return wxString::FromUTF8(resourcesPathCstr);
+}
+
 wxString FrameMain::GenerateFfmpegCommand(wxString inputFile)
 {
+    auto resourcesDir = wxString{".\\"};
+#ifdef __APPLE__
+    resourcesDir = GetResourcesDir() << "/";
+#endif
     auto outputFile = inputFile;
     auto extension = inputFile.find_last_of('.');
     outputFile.replace(extension, 4, ".m4a");
-    wxString ffmpegCommand = "ffmpeg -y -i \""; // -y flag is always overwrite
-    wxString ffmpegFlags = "\" -movflags +faststart -c:a aac -b:a 128000 \"";
+    auto ffmpegCommand = wxString{"ffmpeg -y -i \""}; // -y flag is always overwrite
+    auto ffmpegFlags = wxString{"\" -movflags +faststart -c:a aac -b:a 128000 \""};
+    ffmpegCommand.Prepend(resourcesDir);
     ffmpegCommand += inputFile + ffmpegFlags + _(outputFile) + "\"";
     return ffmpegCommand;
 }
