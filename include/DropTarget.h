@@ -7,6 +7,7 @@
 #endif
 
 #include <wx/dnd.h>
+#include <wx/filefn.h>
 #include <functional>
 
 class DropTarget : public wxFileDropTarget
@@ -16,29 +17,39 @@ public:
 
 private:
     std::function<void(wxArrayString)> m_callback;
+
+    bool IsValidFile(wxString file)
+    {
+        //? file.find_last_of(".");
+        // TODO: use wxString functions
+        auto lastLetter = file.rbegin();
+        std::string fileExtension = "";
+        for (auto iter = lastLetter; *iter != '.'; ++iter)
+        {
+            if (*iter == '/' || *iter == '\\')
+            {
+                //! Directories are not accepted //TODO: deal with directory
+                // if (wxDirExists(file))
+                // {
+                return false;
+                // }
+            }
+            fileExtension.push_back(*iter);
+        }
+        std::reverse(fileExtension.begin(), fileExtension.end());
+
+        return (fileExtension == "wav" || fileExtension == "m4a");
+    }
+
     bool OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames)
     {
         wxArrayString validFilesList;
         for (auto file = 0; file < filenames.GetCount(); ++file)
         {
-            // auto name = filenames[file];
-            // name.find_last_of(".")
-
-            /* check is_directory ? */
-            /* pode / nao pode? */
-            /* ou pega lista de arquivos do diretorio e processa */
-
-            /* extract into a new function that takes file name as input */
-            auto lastLetter = filenames[file].rbegin();
-            std::string fileExtension = "";
-            for (auto iter = lastLetter; *iter != '.'; ++iter)
+            auto fileName = filenames[file];
+            if (IsValidFile(fileName))
             {
-                fileExtension.push_back(*iter);
-            }
-            std::reverse(fileExtension.begin(), fileExtension.end());
-            if (fileExtension == "wav" || fileExtension == "m4a")
-            {
-                validFilesList.Add(filenames[file]);
+                validFilesList.Add(fileName);
             }
         }
 
@@ -58,5 +69,4 @@ private:
 };
 
 //TODO: wxValidator?
-//TODO: override OnDrop to check for directories??
 #endif

@@ -1,21 +1,28 @@
 #ifndef FRAMEMAIN_H
 #define FRAMEMAIN_H
 
-// #include <wx/wxprec.h>
-// #ifndef WX_PRECOMP
-// #include <wx/wx.h>
-// #endif
-
 #include "DropTarget.h"
+
 #include <wx/filedlg.h>
 #include <wx/listctrl.h>
 #include <wx/process.h>
+
+#include <queue>
+#include <map>
 
 enum
 {
     ID_Convert = wxID_LAST + 1,
     ID_Clear,
     ID_FFMPEG
+};
+
+struct Process
+{
+    // wxProcess *process;
+    long pid;
+    int listRow;
+    wxString path;
 };
 
 class FrameMain : public wxFrame
@@ -42,6 +49,8 @@ private:
     wxButton *m_buttonClear = nullptr;
     wxArrayString m_validFileList;
     long m_ffmpegPID;
+    // std::queue<long> m_ffmpegPIDList;
+    // std::queue<wxProcess> m_ffmpegProcessList;
 
     wxDECLARE_EVENT_TABLE();
 };

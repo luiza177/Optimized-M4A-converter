@@ -59,8 +59,6 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
     // status bar
     CreateStatusBar();
     SetStatusText("0 files");
-
-    m_ffmpeg = new wxProcess(this, ID_FFMPEG);
 }
 
 void FrameMain::OnExit(wxCommandEvent &event)
@@ -77,10 +75,11 @@ void FrameMain::OnAbout(wxCommandEvent &event)
 
 wxString FrameMain::GenerateFfmpegCommand(wxString inputFile)
 {
+    //TODO: use relative path for an executable
     wxString ffmpegCommand = "ffmpeg -y -i \""; // -y flag is always overwrite
     //TODO: create folder for output
     std::string outputFile = inputFile.ToStdString();
-    //TODO: refactor
+    //TODO: refactor --> find_last_of, then replace
     outputFile.pop_back();
     outputFile.pop_back();
     outputFile.pop_back();
@@ -94,13 +93,19 @@ void FrameMain::OnConvert(wxCommandEvent &event)
 {
     if (m_fileList->GetItemCount() > 0)
     {
-        //for each listctrl item do
-
-        wxString ffmpegCommand = GenerateFfmpegCommand(m_fileList->GetItemText(0));
-        // wxArrayString output;
         m_buttonConvert->Disable();
         m_buttonClear->SetLabel(_("Cancel"));
+        wxString ffmpegCommand = GenerateFfmpegCommand(m_fileList->GetItemText(0));
+        // for (auto file = 0; file < m_fileList->GetItemCount(); ++file)
+        // {
+        m_ffmpeg = new wxProcess(this, ID_FFMPEG);
+        // m_ffmpegPID = wxExecute(ffmpegCommand, wxEXEC_ASYNC, m_ffmpeg); //? needs queue of wxProcesses as well?
+        //? fill queue, then execute
+        //! func fill queue
+        //! func execute while or on end event
         m_ffmpegPID = wxExecute(ffmpegCommand, wxEXEC_ASYNC, m_ffmpeg);
+        // m_ffmpegPIDList.push(m_ffmpegPID);
+        // }
     }
     else
     {
@@ -110,17 +115,16 @@ void FrameMain::OnConvert(wxCommandEvent &event)
 
 void FrameMain::OnClear(wxCommandEvent &event)
 {
-
-    if (m_ffmpeg->Exists(m_ffmpegPID))
+    if ((m_ffmpeg != nullptr) && (m_ffmpeg->Exists(m_ffmpegPID)))
     {
         wxKillError *err;
         wxKill(m_ffmpegPID, wxSIGTERM, err);
         // TODO: delete residue?
     }
-    else
+    else if (m_fileList->GetItemCount() > 0)
     {
         m_fileList->DeleteAllItems();
-        PopStatusText();
+        UpdateStatusBar();
     }
 }
 
@@ -152,12 +156,12 @@ void FrameMain::UpdateStatusBar()
 {
     if (m_fileList->GetItemCount() == 1)
     {
-        PushStatusText(_("1 file"));
+        SetStatusText(_("1 file"));
     }
     else
     {
         wxString filesNumber = wxString::Format(wxT("%d files"), m_fileList->GetItemCount());
-        PushStatusText(filesNumber);
+        SetStatusText(filesNumber);
     }
 }
 
@@ -174,22 +178,43 @@ void FrameMain::OnKeyDown(wxKeyEvent &event)
             selectedIdx = m_fileList->GetNextSelected(-1);
         }
         event.Skip(false);
+        UpdateStatusBar();
     }
 }
 
 void FrameMain::OnConversionEnd(wxProcessEvent &event)
 {
-    PushStatusText(_("DONE!"));
+    // m_ffmpegPIDList.pop();
+    switch (event.GetExitCode())
+    {
+    case 0:
+    {
+        m_fileList->SetItem(0, 1, _("DONE"));
+        break;
+    }
+    case -1:
+    {
+        m_fileList->SetItem(0, 1, _("CANCELED"));
+        break;
+    }
+    case 1:
+    {
+        m_fileList->SetItem(0, 1, _("ERROR"));
+        break;
+    }
+    default:
+        m_fileList->SetItem(0, 1, _("Unknown"));
+    }
     m_buttonConvert->Enable();
     m_buttonClear->SetLabel(_("Clear"));
 }
 
 //MVP
-//TODO: drag n drop directories
+//TODO: convert whole list
+//? Use Boost for file system?
 
 //FUNCTIONAL
 //TODO: capture stdout (or stderr)
-//TODO: get exit code
 
 //FUTURE
 //TODO: check if already exists --> std::map or std::set
