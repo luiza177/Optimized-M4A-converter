@@ -46,5 +46,4 @@ private:
     }
 };
 
-//TODO: wxValidator?
 #endif

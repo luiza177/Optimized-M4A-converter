@@ -78,12 +78,29 @@ wxString FrameMain::GenerateFfmpegCommand(wxString inputFile)
     auto outputFile = inputFile;
     auto extension = inputFile.find_last_of('.');
     outputFile.replace(extension, 4, ".m4a");
-    //TODO: use relative path for an executable
-    //TODO: create folder for output
     wxString ffmpegCommand = "ffmpeg -y -i \""; // -y flag is always overwrite
     wxString ffmpegFlags = "\" -movflags +faststart -c:a aac -b:a 128000 \"";
     ffmpegCommand += inputFile + ffmpegFlags + _(outputFile) + "\"";
     return ffmpegCommand;
+}
+
+void FrameMain::CreateProcessQueue()
+{
+    for (int row = 0; row < m_fileList->GetItemCount(); ++row)
+    {
+        auto listRow = static_cast<long>(row);
+        Process process = Process{};
+        process.listRow = listRow;
+        process.path = m_fileList->GetItemText(listRow);
+        m_ffmpegProcessList.push_back(process);
+    }
+}
+
+void FrameMain::Convert()
+{
+    m_ffmpeg = new wxProcess(this, ID_FFMPEG);
+    wxString ffmpegCommand = GenerateFfmpegCommand(m_ffmpegProcessList.front().path);
+    m_ffmpegPID = wxExecute(ffmpegCommand, wxEXEC_ASYNC, m_ffmpeg);
 }
 
 void FrameMain::OnConvert(wxCommandEvent &event)
@@ -92,17 +109,9 @@ void FrameMain::OnConvert(wxCommandEvent &event)
     {
         m_buttonConvert->Disable();
         m_buttonClear->SetLabel(_("Cancel"));
-        wxString ffmpegCommand = GenerateFfmpegCommand(m_fileList->GetItemText(0));
-        // for (auto file = 0; file < m_fileList->GetItemCount(); ++file)
-        // {
-        m_ffmpeg = new wxProcess(this, ID_FFMPEG);
-        // m_ffmpegPID = wxExecute(ffmpegCommand, wxEXEC_ASYNC, m_ffmpeg); //? needs queue of wxProcesses as well?
-        //? fill queue, then execute
-        //! func fill queue
-        //! func execute while or on end event
-        m_ffmpegPID = wxExecute(ffmpegCommand, wxEXEC_ASYNC, m_ffmpeg);
-        // m_ffmpegPIDList.push(m_ffmpegPID);
-        // }
+        CreateProcessQueue();
+        Convert();
+        // m_ffmpegPID = wxExecute(ffmpegCommand, wxEXEC_ASYNC, m_ffmpeg);
     }
     else
     {
@@ -115,7 +124,7 @@ void FrameMain::OnClear(wxCommandEvent &event)
     if ((m_ffmpeg != nullptr) && (m_ffmpeg->Exists(m_ffmpegPID)))
     {
         wxKillError *err;
-        wxKill(m_ffmpegPID, wxSIGTERM, err);
+        auto isKilled = wxKill(m_ffmpegPID, wxSIGTERM, err);
         // TODO: delete residue?
     }
     else if (m_fileList->GetItemCount() > 0)
@@ -181,40 +190,50 @@ void FrameMain::OnKeyDown(wxKeyEvent &event)
 
 void FrameMain::OnConversionEnd(wxProcessEvent &event)
 {
-    // m_ffmpegPIDList.pop();
+    const auto listRow = m_ffmpegProcessList.front().listRow;
+    const int STATUS_COL = 1;
     switch (event.GetExitCode())
     {
     case 0:
     {
-        m_fileList->SetItem(0, 1, _("DONE"));
+        m_fileList->SetItem(listRow, STATUS_COL, _("DONE"));
         break;
     }
     case -1:
     {
-        m_fileList->SetItem(0, 1, _("CANCELED"));
+        m_fileList->SetItem(listRow, STATUS_COL, _("CANCELED"));
         break;
     }
     case 1:
     {
-        m_fileList->SetItem(0, 1, _("ERROR"));
+        m_fileList->SetItem(listRow, STATUS_COL, _("ERROR"));
         break;
     }
     default:
-        m_fileList->SetItem(0, 1, _("Unknown"));
+        m_fileList->SetItem(listRow, STATUS_COL, _("Unknown"));
     }
-    m_buttonConvert->Enable();
-    m_buttonClear->SetLabel(_("Clear"));
+    m_ffmpegProcessList.pop_front();
+    if (m_ffmpegProcessList.size() > 0)
+    {
+        Convert();
+    }
+    else
+    {
+        // m_ffmpegProcessList.clear(); //? necessary?
+        m_buttonConvert->Enable();
+        m_buttonClear->SetLabel(_("Clear"));
+    }
 }
 
 //MVP
-//TODO: convert whole list
-//? Use Boost for file system?
-
-//FUNCTIONAL
-//TODO: capture stdout (or stderr)
+//TODO: use relative path for an executable
 
 //FUTURE
+//? Use Boost for file system?
+//TODO: cancel entire batch
+//TODO: capture stdout (or stderr)
 //TODO: check if already exists --> std::map or std::set
+//TODO: create folder for output
 
 //COSMETIC
 //TODO: padding listctrl ??

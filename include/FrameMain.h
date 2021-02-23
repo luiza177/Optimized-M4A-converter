@@ -7,8 +7,8 @@
 #include <wx/listctrl.h>
 #include <wx/process.h>
 
-#include <queue>
 #include <map>
+#include <list>
 
 enum
 {
@@ -20,8 +20,8 @@ enum
 struct Process
 {
     // wxProcess *process;
-    long pid;
-    int listRow;
+    long pid = -1;
+    long listRow;
     wxString path;
 };
 
@@ -40,7 +40,9 @@ private:
     void OnKeyDown(wxKeyEvent &event);
     void UpdateStatusBar();
     wxString GenerateFfmpegCommand(wxString inputFile);
+    void Convert();
     void OnConversionEnd(wxProcessEvent &event);
+    void CreateProcessQueue();
 
     wxProcess *m_ffmpeg = nullptr;
 
@@ -49,8 +51,7 @@ private:
     wxButton *m_buttonClear = nullptr;
     wxArrayString m_validFileList;
     long m_ffmpegPID;
-    // std::queue<long> m_ffmpegPIDList;
-    // std::queue<wxProcess> m_ffmpegProcessList;
+    std::list<Process> m_ffmpegProcessList;
 
     wxDECLARE_EVENT_TABLE();
 };
