@@ -1,7 +1,8 @@
 #include "../include/FrameMain.h"
-// #include <iostream>
-#include <CoreFoundation/CoreFoundation.h>
 
+#ifdef __APPLE__
+#include <CoreFoundation/CoreFoundation.h>
+#endif
 FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(nullptr, wxID_ANY, title, pos, size)
 {
@@ -76,6 +77,7 @@ void FrameMain::OnAbout(wxCommandEvent &event)
 
 wxString FrameMain::GetResourcesDir()
 {
+#ifdef __APPLE__
     auto mainBundle = CFBundleGetMainBundle();
     auto resourcesUrl = CFBundleCopyResourcesDirectoryURL(mainBundle);
 
@@ -87,15 +89,14 @@ wxString FrameMain::GetResourcesDir()
     }
     CFRelease(resourcesUrl);
 
-    return wxString::FromUTF8(resourcesPathCstr);
+    return wxString::FromUTF8(resourcesPathCstr) << "/";
+#endif
+    return wxString{".\\Resources\\"};
 }
 
 wxString FrameMain::GenerateFfmpegCommand(wxString inputFile)
 {
-    auto resourcesDir = wxString{".\\"};
-#ifdef __APPLE__
-    resourcesDir = GetResourcesDir() << "/";
-#endif
+    auto resourcesDir = GetResourcesDir();
     auto outputFile = inputFile;
     auto extension = inputFile.find_last_of('.');
     outputFile.replace(extension, 4, ".m4a");

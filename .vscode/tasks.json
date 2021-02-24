@@ -15,17 +15,20 @@
             },
             "dependsOn": [
                 "Configure with CMake"
-            ]
+            ],
+            "problemMatcher": []
         },
         {
             "label": "Configure with CMake",
             "type": "shell",
             "command": "cmake",
             "args": [
-                "-DCMAKE_BUILD_TYPE=Debug",
+                "-DCMAKE_BUILD_TYPE=Release", // or Debug
                 "-S.",
                 "-Bbuild"
-            ]
+            ],
+            "problemMatcher": [],
+            "group": "build"
         }
     ]
 }
