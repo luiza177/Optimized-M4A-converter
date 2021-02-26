@@ -61,7 +61,6 @@
         "numeric": "cpp",
         "optional": "cpp",
         "ostream": "cpp",
-        "queue": "cpp",
         "ratio": "cpp",
         "regex": "cpp",
         "set": "cpp",

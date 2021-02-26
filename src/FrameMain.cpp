@@ -248,15 +248,11 @@ void FrameMain::OnConversionEnd(wxProcessEvent &event)
     }
 }
 
-//MVP
-//TODO: use relative path for an executable
-
 //FUTURE
-//? Use Boost for file system?
 //TODO: cancel entire batch
-//TODO: capture stdout (or stderr)
+//TODO: progress bar/wxGauge --> capture stderr
 //TODO: check if already exists --> std::map or std::set
-//TODO: create folder for output
+//TODO: create folder for output //? Use Boost for file system?
 
 //COSMETIC
 //TODO: padding listctrl ??
