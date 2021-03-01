@@ -70,6 +70,7 @@ void FrameMain::OnExit(wxCommandEvent &event)
 
 void FrameMain::OnAbout(wxCommandEvent &event)
 {
+    // TODO: elaborate
     wxMessageBox(_("This is a WAV to AAC converter that produces optimized M4A/AAC files"),
                  _("About Optimized M4A Converter"),
                  wxOK | wxICON_INFORMATION);
@@ -176,8 +177,17 @@ void FrameMain::OnOpen(wxCommandEvent &event)
 }
 
 void FrameMain::FillListCtrl(wxArrayString fileList)
+// void FrameMain::FillListCtrl(wxArrayString fileList)
 {
-    std::for_each(fileList.begin(), fileList.end(), [this](wxString file) { this->m_fileList->InsertItem(0, file); });
+    std::for_each(fileList.begin(), fileList.end(), [this](wxString file) {
+        // if (m_validFileList.)
+        // {
+        //     /* code */
+        // }
+        
+        this->m_fileList->InsertItem(0, file);
+    });
+
     UpdateStatusBar();
 }
 

@@ -1,17 +1,13 @@
 # Optimized M4A Converter
 
-Uses wxWidgets to create a GUI for leveraging FFMPEG's executable, in order to create **<u>optimized</u> 128kbps M4A (AAC) files** from WAVs or other M4A files. For **MacOS 10.14+** and **Windows**.
-
----
+Uses wxWidgets to create a GUI for leveraging [FFMPEG](http://ffmpeg.org/)'s executable, in order to create **<u>optimized</u> 128kbps M4A (AAC) files** from WAVs or other M4A files. For **MacOS 10.14+** and **Windows**.
 
 ## Prerequisites
 
-Requires FFMPEG executable (and `dll`s for Windows) to be downloaded and placed in specific folders:
+Requires [FFMPEG executable](http://ffmpeg.org/download.html) (and `dll`s for Windows) to be downloaded and placed in specific folders:
 
 - For **MacOS**: `Optimized_m4a_converter.app/Contents/Resources/`
 - For **Windows**: A folder named `Resources` in the same directory as the executable.
-
----
 
 ## Roadmap
 
@@ -22,8 +18,6 @@ Requires FFMPEG executable (and `dll`s for Windows) to be downloaded and placed 
 - Change destination folder
 - Settings menu (eg. configure bit rate, etc)
 - (?) "Quick mode" - dragging and droping files automatically converts them to predefined settings
-
----
 
 ## Acknowledgments
 

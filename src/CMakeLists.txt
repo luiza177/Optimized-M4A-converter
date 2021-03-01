@@ -22,6 +22,7 @@ set(SRCS App.cpp FrameMain.cpp )
 include(${wxWidgets_USE_FILE})
 
 if (APPLE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.13)
     find_library(FoundationLib CoreFoundation)
     # create bundle on apple compiles
     add_executable(Optimized_M4A_Converter MACOSX_BUNDLE ${SRCS} )

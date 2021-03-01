@@ -5,21 +5,21 @@
       "name": "(lldb-mac) Launch",
       "type": "lldb",
       "request": "launch",
-      "program": "${workspaceFolder}/build/subprojects/Build/optimized_m4a_converter_core/main.app",
+      "program": "${workspaceFolder}/build/subprojects/Build/optimized_m4a_converter_core/Optimized_m4a_converter.app",
       "preLaunchTask": "Build with CMake"
     },
     {
       "name": "(lldb-linux) Launch",
       "type": "lldb",
       "request": "launch",
-      "program": "${workspaceFolder}/build/subprojects/Build/optimized_m4a_converter_core/main",
+      "program": "${workspaceFolder}/build/subprojects/Build/optimized_m4a_converter_core/Optimized_m4a_converter",
       "preLaunchTask": "Build with CMake"
     },
     {
       "name": "(msvc) Launch",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}\\build\\subprojects\\Build\\optimized_m4a_converter_core\\Debug\\main.exe",
+      "program": "${workspaceFolder}\\build\\subprojects\\Build\\optimized_m4a_converter_core\\Debug\\Optimized_m4a_converter.exe",
       "preLaunchTask": "Build with CMake"
     }
   ]
