@@ -61,7 +61,6 @@
         "numeric": "cpp",
         "optional": "cpp",
         "ostream": "cpp",
-        "queue": "cpp",
         "ratio": "cpp",
         "regex": "cpp",
         "set": "cpp",
@@ -77,6 +76,7 @@
         "unordered_map": "cpp",
         "unordered_set": "cpp",
         "utility": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "vector": "cpp"
     }
 }

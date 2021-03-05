@@ -2,57 +2,50 @@
 #define FRAMEMAIN_H
 
 #include "DropTarget.h"
+#include "Converter.h"
 
 #include <wx/filedlg.h>
 #include <wx/listctrl.h>
 #include <wx/process.h>
 
-#include <map>
+#include <set>
 #include <list>
 
 enum
 {
     ID_Convert = wxID_LAST + 1,
-    ID_Clear,
-    ID_FFMPEG
-};
-
-struct Process
-{
-    // wxProcess *process;
-    long pid = -1;
-    long listRow;
-    wxString path;
+    ID_Clear
 };
 
 class FrameMain : public wxFrame
 {
 public:
     FrameMain(const wxString &title, const wxPoint &pos, const wxSize &size);
-    void FillListCtrl(wxArrayString fileList);
+    void FillListView();
+    void OnConversionEnd(Process file);
+    void OnBatchEnd();
 
 private:
+    wxString GetResourcesDir(); // to new class
+
+    void OnResize(wxSizeEvent &event);
     void OnConvert(wxCommandEvent &event);
     void OnOpen(wxCommandEvent &event);
     void OnClear(wxCommandEvent &event);
+    void OnCancel(wxCommandEvent &event);
     void OnExit(wxCommandEvent &event);
     void OnAbout(wxCommandEvent &event);
     void OnKeyDown(wxKeyEvent &event);
     void UpdateStatusBar();
-    wxString GenerateFfmpegCommand(wxString inputFile);
-    void Convert();
-    void OnConversionEnd(wxProcessEvent &event);
-    void CreateProcessQueue();
-    wxString GetResourcesDir();
+    void CreateProcessQueue(); // calls convert() in new class?
+    void AddToValidFileList(wxArrayString files);
 
-    wxProcess *m_ffmpeg = nullptr;
-
-    wxListView *m_fileList = nullptr;
+    wxListView *m_listViewFiles = nullptr;
     wxButton *m_buttonConvert = nullptr;
-    wxButton *m_buttonClear = nullptr;
-    wxArrayString m_validFileList;
-    long m_ffmpegPID;
-    std::list<Process> m_ffmpegProcessList;
+    wxButton *m_buttonClearCancel = nullptr;
+    Converter *m_converter = nullptr;
+
+    std::set<wxString> m_validFileList;
 
     wxDECLARE_EVENT_TABLE();
 };

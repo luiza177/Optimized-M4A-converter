@@ -14,14 +14,16 @@ set(wxWidgets_USE_STATIC 1)
 
 find_package(wxWidgets REQUIRED)
 
-# set(SRCS main.cpp)
-set(SRCS App.cpp FrameMain.cpp )
+# set(SRCS App.cpp FrameMain.cpp)
+set(SRCS App.cpp FrameMain.cpp Converter.cpp)
 
-# include_directories(../include)
+include_directories(${CMAKE_SOURCE_DIR}/../include)
+# include_directories(${CMAKE_SOURCE_DIR}/../include /usr/local/Cellar/boost/1.75.0_1/include)
 
 include(${wxWidgets_USE_FILE})
 
 if (APPLE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.13)
     find_library(FoundationLib CoreFoundation)
     # create bundle on apple compiles
     add_executable(Optimized_M4A_Converter MACOSX_BUNDLE ${SRCS} )
@@ -35,3 +37,4 @@ else()
 endif()
 
 target_link_libraries(Optimized_M4A_Converter PRIVATE ${wxWidgets_LIBRARIES})
+# target_link_libraries(Optimized_M4A_Converter PRIVATE ${wxWidgets_LIBRARIES} /usr/local/Cellar/boost/1.75.0_1/lib)
