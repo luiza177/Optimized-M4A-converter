@@ -1,8 +1,9 @@
-#include "../include/FrameMain.h"
+#include "FrameMain.h"
 
 #ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
 #endif
+
 FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(nullptr, wxID_ANY, title, pos, size)
 {
@@ -29,7 +30,8 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
     // buttons
     m_buttonConvert = new wxButton(panelMain, ID_Convert, _("Convert"), wxDefaultPosition, wxSize(100, 20));
     m_buttonConvert->SetDefault();
-    m_buttonClear = new wxButton(panelMain, ID_Clear, _("Clear"), wxDefaultPosition, wxSize(70, 20));
+    m_buttonClearCancel = new wxButton(panelMain, ID_Clear, _("Clear"), wxDefaultPosition, wxSize(70, 20));
+    m_buttonClearCancel->Bind(wxEVT_BUTTON, &FrameMain::OnClear, this);
 
     // list
     m_listViewFiles = new wxListView(panelMain, wxID_ANY, wxDefaultPosition, wxSize(500, 300), wxLC_REPORT);
@@ -46,7 +48,7 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
     sizerHorMain->Add(m_listViewFiles, 1, wxEXPAND);
     sizerVertMain->Add(sizerHorMain, 1, wxEXPAND);
 
-    sizerHorButtons->Add(m_buttonClear, 0, wxRIGHT, 10);
+    sizerHorButtons->Add(m_buttonClearCancel, 0, wxRIGHT, 10);
     sizerHorButtons->Add(m_buttonConvert);
 
     sizerVertMain->Add(sizerHorButtons, 0, wxALIGN_RIGHT | wxALL, 10);
@@ -132,7 +134,8 @@ void FrameMain::OnConvert(wxCommandEvent &event)
     if (m_listViewFiles->GetItemCount() > 0)
     {
         m_buttonConvert->Disable();
-        m_buttonClear->SetLabel(_("Cancel"));
+        m_buttonClearCancel->SetLabel(_("Cancel"));
+        m_buttonClearCancel->Bind(wxEVT_BUTTON, &FrameMain::OnCancel, this);
         CreateProcessQueue();
         Convert();
         // m_ffmpegPID = wxExecute(ffmpegCommand, wxEXEC_ASYNC, m_ffmpeg);
@@ -145,16 +148,21 @@ void FrameMain::OnConvert(wxCommandEvent &event)
 
 void FrameMain::OnClear(wxCommandEvent &event)
 {
+    if (m_listViewFiles->GetItemCount() > 0)
+    {
+        m_listViewFiles->DeleteAllItems();
+        m_validFileList.clear();
+        UpdateStatusBar();
+    }
+}
+
+void FrameMain::OnCancel(wxCommandEvent &event)
+{
     if ((m_ffmpeg != nullptr) && (m_ffmpeg->Exists(m_ffmpegPID)))
     {
         wxKillError *err;
         auto isKilled = wxKill(m_ffmpegPID, wxSIGTERM, err);
         // TODO: delete residue?
-    }
-    else if (m_listViewFiles->GetItemCount() > 0)
-    {
-        m_listViewFiles->DeleteAllItems();
-        UpdateStatusBar();
     }
 }
 
@@ -214,6 +222,7 @@ void FrameMain::OnKeyDown(wxKeyEvent &event)
         auto selectedIdx = m_listViewFiles->GetFirstSelected(); // TODO: understand this
         while (selectedIdx > -1)
         {
+            m_validFileList.erase(m_listViewFiles->GetItemText(selectedIdx));
             m_listViewFiles->DeleteItem(selectedIdx);
             selectedIdx = m_listViewFiles->GetNextSelected(-1);
         }
@@ -261,7 +270,8 @@ void FrameMain::OnConversionEnd(wxProcessEvent &event)
     else
     {
         m_buttonConvert->Enable();
-        m_buttonClear->SetLabel(_("Clear"));
+        m_buttonClearCancel->SetLabel(_("Clear"));
+        m_buttonClearCancel->Bind(wxEVT_BUTTON, &FrameMain::OnClear, this);
     }
 }
 

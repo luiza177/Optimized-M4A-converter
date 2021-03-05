@@ -30,29 +30,32 @@ public:
     void FillListView();
 
 private:
+    wxString GetResourcesDir(); // to new class
+
+    void OnResize(wxSizeEvent &event);
     void OnConvert(wxCommandEvent &event);
     void OnOpen(wxCommandEvent &event);
     void OnClear(wxCommandEvent &event);
+    void OnCancel(wxCommandEvent &event);
     void OnExit(wxCommandEvent &event);
     void OnAbout(wxCommandEvent &event);
     void OnKeyDown(wxKeyEvent &event);
     void UpdateStatusBar();
-    wxString GenerateFfmpegCommand(wxString inputFile);
-    void Convert();
-    void OnConversionEnd(wxProcessEvent &event);
-    void CreateProcessQueue();
-    wxString GetResourcesDir();
+    wxString GenerateFfmpegCommand(wxString inputFile); // to new class
+    void Convert();                                     // to new class
+    void OnConversionEnd(wxProcessEvent &event);        // to new class
+    void CreateProcessQueue();                          // calls convert() in new class?
     void AddToValidFileList(wxArrayString files);
-    void OnResize(wxSizeEvent &event);
 
-    wxProcess *m_ffmpeg = nullptr;
+    wxProcess *m_ffmpeg = nullptr; // to new class
+    long m_ffmpegPID;              // to new class?
 
-    wxListView *m_listViewFiles = nullptr; //? rename to m_listViewFiles
+    wxListView *m_listViewFiles = nullptr;
     wxButton *m_buttonConvert = nullptr;
-    wxButton *m_buttonClear = nullptr;
+    wxButton *m_buttonClearCancel = nullptr;
+
     std::set<wxString> m_validFileList;
-    long m_ffmpegPID;
-    std::list<Process> m_ffmpegProcessList;
+    std::list<Process> m_ffmpegProcessList; // send to or live in new class?
 
     wxDECLARE_EVENT_TABLE();
 };
