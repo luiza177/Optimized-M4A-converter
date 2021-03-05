@@ -9,6 +9,7 @@
 #include <wx/dnd.h>
 #include <wx/filefn.h>
 #include <functional>
+#include <boost/filesystem.hpp>
 
 class DropTarget : public wxFileDropTarget
 {
@@ -21,14 +22,12 @@ private:
     bool OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames)
     {
         wxArrayString validFilesList;
-        // std::set<wxString> validFilesList;
         for (auto file = 0; file < filenames.GetCount(); ++file)
         {
             auto filePath = filenames[file];
             if (filePath.EndsWith(_(".wav")) || filePath.EndsWith(_(".m4a")))
             {
                 validFilesList.Add(filePath);
-                // validFilesList.push_back(filePath);
             }
             // else if (wxDirExists(filePath)) { add all valid files }
         }

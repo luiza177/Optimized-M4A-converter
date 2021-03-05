@@ -5,7 +5,8 @@
             "includePath": [
                 "${workspaceFolder}/src/**",
                 "${workspaceFolder}/build/stage/include/wx-3.1/**",
-                "${workspaceFolder}/build/subprojects/Build/wxWidgets_external/lib/wx/include/osx_cocoa-unicode-static-3.1/**"
+                "${workspaceFolder}/build/subprojects/Build/wxWidgets_external/lib/wx/include/osx_cocoa-unicode-static-3.1/**",
+                "/usr/local/Cellar/boost/1.75.0_1/include/"
                 // "~/sdks/wxWidgets-3.1.4/lib/wx/include/osx_cocoa-unicode-static-3.1/**",
                 // "~/sdks/wxWidgets-3.1.4/include/wx-3.1/**"
             ],

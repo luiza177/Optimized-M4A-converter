@@ -20,5 +20,6 @@ wxBEGIN_EVENT_TABLE(FrameMain, wxFrame)
     EVT_BUTTON(ID_Convert, FrameMain::OnConvert)
     EVT_BUTTON(ID_Clear, FrameMain::OnClear)
     EVT_END_PROCESS(wxID_ANY, FrameMain::OnConversionEnd)
+    EVT_SIZE(FrameMain::OnResize)
 wxEND_EVENT_TABLE()
 wxIMPLEMENT_APP(App);

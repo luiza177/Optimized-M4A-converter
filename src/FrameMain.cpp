@@ -32,18 +32,18 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
     m_buttonClear = new wxButton(panelMain, ID_Clear, _("Clear"), wxDefaultPosition, wxSize(70, 20));
 
     // list
-    m_fileList = new wxListView(panelMain, wxID_ANY, wxDefaultPosition, wxSize(500, 300), wxLC_REPORT);
-    m_fileList->Bind(wxEVT_KEY_DOWN, wxKeyEventHandler(FrameMain::OnKeyDown), this); //why?
+    m_listViewFiles = new wxListView(panelMain, wxID_ANY, wxDefaultPosition, wxSize(500, 300), wxLC_REPORT);
+    m_listViewFiles->Bind(wxEVT_KEY_DOWN, wxKeyEventHandler(FrameMain::OnKeyDown), this); //why?
 
-    m_fileList->AppendColumn(_("File"), wxLIST_FORMAT_LEFT, 400);
-    m_fileList->AppendColumn(_("Status"), wxLIST_FORMAT_CENTER, 100);
+    m_listViewFiles->AppendColumn(_("File"), wxLIST_FORMAT_LEFT, 400);
+    m_listViewFiles->AppendColumn(_("Status"), wxLIST_FORMAT_CENTER, 100);
 
     // sizers
     wxBoxSizer *sizerVertMain = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *sizerHorMain = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *sizerHorButtons = new wxBoxSizer(wxHORIZONTAL);
 
-    sizerHorMain->Add(m_fileList, 1, wxEXPAND);
+    sizerHorMain->Add(m_listViewFiles, 1, wxEXPAND);
     sizerVertMain->Add(sizerHorMain, 1, wxEXPAND);
 
     sizerHorButtons->Add(m_buttonClear, 0, wxRIGHT, 10);
@@ -56,7 +56,7 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
     // drag-n-drop
     DropTarget *dropTarget = new DropTarget();
     panelMain->SetDropTarget(dropTarget);
-    dropTarget->SetCallback(std::bind(&FrameMain::FillListCtrl, this, std::placeholders::_1)); // can't just say FrameMain::FillListCtrl
+    dropTarget->SetCallback(std::bind(&FrameMain::AddToValidFileList, this, std::placeholders::_1)); // can't just say FrameMain::FillListView
 
     // status bar
     CreateStatusBar();
@@ -110,12 +110,12 @@ wxString FrameMain::GenerateFfmpegCommand(wxString inputFile)
 
 void FrameMain::CreateProcessQueue()
 {
-    for (int row = 0; row < m_fileList->GetItemCount(); ++row)
+    for (int row = 0; row < m_listViewFiles->GetItemCount(); ++row)
     {
         auto listRow = static_cast<long>(row);
         Process process = Process{};
         process.listRow = listRow;
-        process.path = m_fileList->GetItemText(listRow);
+        process.path = m_listViewFiles->GetItemText(listRow);
         m_ffmpegProcessList.push_back(process);
     }
 }
@@ -129,7 +129,7 @@ void FrameMain::Convert()
 
 void FrameMain::OnConvert(wxCommandEvent &event)
 {
-    if (m_fileList->GetItemCount() > 0)
+    if (m_listViewFiles->GetItemCount() > 0)
     {
         m_buttonConvert->Disable();
         m_buttonClear->SetLabel(_("Cancel"));
@@ -151,9 +151,9 @@ void FrameMain::OnClear(wxCommandEvent &event)
         auto isKilled = wxKill(m_ffmpegPID, wxSIGTERM, err);
         // TODO: delete residue?
     }
-    else if (m_fileList->GetItemCount() > 0)
+    else if (m_listViewFiles->GetItemCount() > 0)
     {
-        m_fileList->DeleteAllItems();
+        m_listViewFiles->DeleteAllItems();
         UpdateStatusBar();
     }
 }
@@ -171,21 +171,22 @@ void FrameMain::OnOpen(wxCommandEvent &event)
     {
         return;
     }
-
-    openFileDialog.GetPaths(m_validFileList); // fills the param fileList
-    FillListCtrl(m_validFileList);
+    wxArrayString validFileList;
+    openFileDialog.GetPaths(validFileList); // fills the param fileList
+    AddToValidFileList(validFileList);
 }
 
-void FrameMain::FillListCtrl(wxArrayString fileList)
-// void FrameMain::FillListCtrl(wxArrayString fileList)
+void FrameMain::AddToValidFileList(wxArrayString fileList)
 {
-    std::for_each(fileList.begin(), fileList.end(), [this](wxString file) {
-        // if (m_validFileList.)
-        // {
-        //     /* code */
-        // }
-        
-        this->m_fileList->InsertItem(0, file);
+    std::for_each(fileList.begin(), fileList.end(), [this](wxString file) { m_validFileList.insert(file); });
+    FillListView();
+}
+
+void FrameMain::FillListView()
+{
+    m_listViewFiles->DeleteAllItems();
+    std::for_each(m_validFileList.begin(), m_validFileList.end(), [this](wxString file) {
+        this->m_listViewFiles->InsertItem(0, file);
     });
 
     UpdateStatusBar();
@@ -193,13 +194,13 @@ void FrameMain::FillListCtrl(wxArrayString fileList)
 
 void FrameMain::UpdateStatusBar()
 {
-    if (m_fileList->GetItemCount() == 1)
+    if (m_listViewFiles->GetItemCount() == 1)
     {
         SetStatusText(_("1 file"));
     }
     else
     {
-        wxString filesNumber = wxString::Format(wxT("%d files"), m_fileList->GetItemCount());
+        wxString filesNumber = wxString::Format(wxT("%d files"), m_listViewFiles->GetItemCount());
         SetStatusText(filesNumber);
     }
 }
@@ -210,11 +211,11 @@ void FrameMain::OnKeyDown(wxKeyEvent &event)
     auto key = event.GetKeyCode();
     if (key == WXK_DELETE) //|| key == WXK_BACK)
     {
-        auto selectedIdx = m_fileList->GetFirstSelected(); // TODO: understand this
+        auto selectedIdx = m_listViewFiles->GetFirstSelected(); // TODO: understand this
         while (selectedIdx > -1)
         {
-            m_fileList->DeleteItem(selectedIdx);
-            selectedIdx = m_fileList->GetNextSelected(-1);
+            m_listViewFiles->DeleteItem(selectedIdx);
+            selectedIdx = m_listViewFiles->GetNextSelected(-1);
         }
         event.Skip(false);
         UpdateStatusBar();
@@ -229,39 +230,50 @@ void FrameMain::OnConversionEnd(wxProcessEvent &event)
     {
     case 0:
     {
-        m_fileList->SetItem(listRow, STATUS_COL, _("DONE"));
+        m_listViewFiles->SetItem(listRow, STATUS_COL, _("DONE"));
+        m_listViewFiles->SetItemTextColour(listRow, wxColour("green"));
         break;
     }
     case -1:
     {
-        m_fileList->SetItem(listRow, STATUS_COL, _("CANCELED"));
+        m_listViewFiles->SetItem(listRow, STATUS_COL, _("CANCELED"));
+        m_listViewFiles->SetItemTextColour(listRow, wxColour("red"));
+        m_ffmpegProcessList.clear();
         break;
     }
     case 1:
     {
-        m_fileList->SetItem(listRow, STATUS_COL, _("ERROR"));
+        m_listViewFiles->SetItem(listRow, STATUS_COL, _("ERROR"));
+        m_listViewFiles->SetItemTextColour(listRow, wxColour("red"));
         break;
     }
     default:
-        m_fileList->SetItem(listRow, STATUS_COL, _("Unknown"));
+        m_listViewFiles->SetItem(listRow, STATUS_COL, _("Unknown error"));
+        m_listViewFiles->SetItemTextColour(listRow, wxColour("grey"));
     }
-    m_ffmpegProcessList.pop_front();
+    if (m_ffmpegProcessList.size() > 0)
+        m_ffmpegProcessList.pop_front();
+
     if (m_ffmpegProcessList.size() > 0)
     {
         Convert();
     }
     else
     {
-        // m_ffmpegProcessList.clear(); //? necessary?
         m_buttonConvert->Enable();
         m_buttonClear->SetLabel(_("Clear"));
     }
 }
 
+void FrameMain::OnResize(wxSizeEvent &event)
+{
+    event.Skip();
+    auto windowWidth = GetSize().GetWidth();
+    m_listViewFiles->SetColumnWidth(0, windowWidth - 100);
+}
+
 //FUTURE
-//TODO: cancel entire batch
 //TODO: progress bar/wxGauge --> capture stderr
-//TODO: check if already exists --> std::map or std::set
 //TODO: create folder for output //? Use Boost for file system?
 
 //COSMETIC

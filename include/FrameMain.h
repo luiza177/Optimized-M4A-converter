@@ -19,8 +19,6 @@ enum
 
 struct Process
 {
-    // wxProcess *process;
-    long pid = -1;
     long listRow;
     wxString path;
 };
@@ -29,7 +27,7 @@ class FrameMain : public wxFrame
 {
 public:
     FrameMain(const wxString &title, const wxPoint &pos, const wxSize &size);
-    void FillListCtrl(wxArrayString fileList); //?rename to FillListView
+    void FillListView();
 
 private:
     void OnConvert(wxCommandEvent &event);
@@ -44,14 +42,15 @@ private:
     void OnConversionEnd(wxProcessEvent &event);
     void CreateProcessQueue();
     wxString GetResourcesDir();
+    void AddToValidFileList(wxArrayString files);
+    void OnResize(wxSizeEvent &event);
 
     wxProcess *m_ffmpeg = nullptr;
 
-    wxListView *m_fileList = nullptr; //? rename to m_listViewFiles
+    wxListView *m_listViewFiles = nullptr; //? rename to m_listViewFiles
     wxButton *m_buttonConvert = nullptr;
     wxButton *m_buttonClear = nullptr;
-    wxArrayString m_validFileList;
-    // std::set<wxString> m_validFileList;
+    std::set<wxString> m_validFileList;
     long m_ffmpegPID;
     std::list<Process> m_ffmpegProcessList;
 

@@ -12,9 +12,9 @@ Requires [FFMPEG executable](http://ffmpeg.org/download.html) (and `dll`s for Wi
 ## Roadmap
 
 - Output files in their own `M4A` folder
-- Ability to cancel entire batch.
+- Ability to cancel entire batch. --- DONE
 - Progress bar
-- Aesthetic improvements
+- Aesthetic improvements --- DONE(?)
 - Change destination folder
 - Settings menu (eg. configure bit rate, etc)
 - (?) "Quick mode" - dragging and droping files automatically converts them to predefined settings
