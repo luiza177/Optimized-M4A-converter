@@ -36,15 +36,19 @@ private:
 
     wxProcess *m_ffmpeg = nullptr;
     long m_ffmpegPID;
-    std::list<Process> m_ffmpegProcessList; // send to or live in new class?
-    std::function<void(std::list<Process>)> m_callback;
+    std::list<Process> m_ffmpegProcessList;
+
+    std::function<void(Process process)> m_callbackFileStatus;
+    std::function<void()> m_callbackBatchEnd;
 
 public:
     Converter();
-    virtual ~Converter();
-    void CreateProcessQueueAndConvert();
+    virtual ~Converter() {}
+    void SetListAndConvert(std::list<Process> processList);
     void Cancel();
-    void SetCallback(std::function<void(std::list<Process>)> callback);
+    void SetFileStatusCallback(std::function<void(Process process)> callback);
+    void SetBatchEndCallback(std::function<void()> callback);
 };
 
+// clang-format off
 #endif

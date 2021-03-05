@@ -1,9 +1,5 @@
 #include "FrameMain.h"
 
-#ifdef __APPLE__
-#include <CoreFoundation/CoreFoundation.h>
-#endif
-
 FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(nullptr, wxID_ANY, title, pos, size)
 {
@@ -63,6 +59,11 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
     // status bar
     CreateStatusBar();
     SetStatusText("0 files");
+
+    // converter
+    m_converter = new Converter();
+    m_converter->SetFileStatusCallback(std::bind(&FrameMain::OnConversionEnd, this, std::placeholders::_1));
+    m_converter->SetBatchEndCallback(std::bind(&FrameMain::OnBatchEnd, this));
 }
 
 void FrameMain::OnExit(wxCommandEvent &event)
@@ -78,55 +79,18 @@ void FrameMain::OnAbout(wxCommandEvent &event)
                  wxOK | wxICON_INFORMATION);
 }
 
-wxString FrameMain::GetResourcesDir()
-{
-#ifdef __APPLE__
-    auto mainBundle = CFBundleGetMainBundle();
-    auto resourcesUrl = CFBundleCopyResourcesDirectoryURL(mainBundle);
-
-    char resourcesPathCstr[1024];
-    if (!CFURLGetFileSystemRepresentation(resourcesUrl, TRUE, (UInt8 *)resourcesPathCstr, 1024))
-    {
-        // something went wrong
-        // abort app?
-    }
-    CFRelease(resourcesUrl);
-
-    return wxString::FromUTF8(resourcesPathCstr) << "/";
-#endif
-    return wxString{".\\Resources\\"};
-}
-
-wxString FrameMain::GenerateFfmpegCommand(wxString inputFile)
-{
-    auto resourcesDir = GetResourcesDir();
-    auto outputFile = inputFile;
-    auto extension = inputFile.find_last_of('.');
-    outputFile.replace(extension, 4, ".m4a");
-    auto ffmpegCommand = wxString{"ffmpeg -y -i \""}; // -y flag is always overwrite
-    auto ffmpegFlags = wxString{"\" -movflags +faststart -c:a aac -b:a 128000 \""};
-    ffmpegCommand.Prepend(resourcesDir);
-    ffmpegCommand += inputFile + ffmpegFlags + _(outputFile) + "\"";
-    return ffmpegCommand;
-}
-
 void FrameMain::CreateProcessQueue()
 {
+    std::list<Process> processList;
     for (int row = 0; row < m_listViewFiles->GetItemCount(); ++row)
     {
         auto listRow = static_cast<long>(row);
         Process process = Process{};
         process.listRow = listRow;
         process.path = m_listViewFiles->GetItemText(listRow);
-        m_ffmpegProcessList.push_back(process);
+        processList.push_back(process);
     }
-}
-
-void FrameMain::Convert()
-{
-    m_ffmpeg = new wxProcess(this, ID_FFMPEG);
-    wxString ffmpegCommand = GenerateFfmpegCommand(m_ffmpegProcessList.front().path);
-    m_ffmpegPID = wxExecute(ffmpegCommand, wxEXEC_ASYNC, m_ffmpeg);
+    m_converter->SetListAndConvert(processList);
 }
 
 void FrameMain::OnConvert(wxCommandEvent &event)
@@ -137,8 +101,6 @@ void FrameMain::OnConvert(wxCommandEvent &event)
         m_buttonClearCancel->SetLabel(_("Cancel"));
         m_buttonClearCancel->Bind(wxEVT_BUTTON, &FrameMain::OnCancel, this);
         CreateProcessQueue();
-        Convert();
-        // m_ffmpegPID = wxExecute(ffmpegCommand, wxEXEC_ASYNC, m_ffmpeg);
     }
     else
     {
@@ -158,12 +120,7 @@ void FrameMain::OnClear(wxCommandEvent &event)
 
 void FrameMain::OnCancel(wxCommandEvent &event)
 {
-    if ((m_ffmpeg != nullptr) && (m_ffmpeg->Exists(m_ffmpegPID)))
-    {
-        wxKillError *err;
-        auto isKilled = wxKill(m_ffmpegPID, wxSIGTERM, err);
-        // TODO: delete residue?
-    }
+    m_converter->Cancel();
 }
 
 void FrameMain::OnOpen(wxCommandEvent &event)
@@ -231,48 +188,40 @@ void FrameMain::OnKeyDown(wxKeyEvent &event)
     }
 }
 
-void FrameMain::OnConversionEnd(wxProcessEvent &event)
+void FrameMain::OnConversionEnd(Process file)
 {
-    const auto listRow = m_ffmpegProcessList.front().listRow;
     const int STATUS_COL = 1;
-    switch (event.GetExitCode())
+    switch (file.status)
     {
     case 0:
     {
-        m_listViewFiles->SetItem(listRow, STATUS_COL, _("DONE"));
-        m_listViewFiles->SetItemTextColour(listRow, wxColour("green"));
+        m_listViewFiles->SetItem(file.listRow, STATUS_COL, _("DONE"));
+        m_listViewFiles->SetItemTextColour(file.listRow, wxColour("green"));
         break;
     }
     case -1:
     {
-        m_listViewFiles->SetItem(listRow, STATUS_COL, _("CANCELED"));
-        m_listViewFiles->SetItemTextColour(listRow, wxColour("red"));
-        m_ffmpegProcessList.clear();
+        m_listViewFiles->SetItem(file.listRow, STATUS_COL, _("CANCELED"));
+        m_listViewFiles->SetItemTextColour(file.listRow, wxColour("red"));
         break;
     }
     case 1:
     {
-        m_listViewFiles->SetItem(listRow, STATUS_COL, _("ERROR"));
-        m_listViewFiles->SetItemTextColour(listRow, wxColour("red"));
+        m_listViewFiles->SetItem(file.listRow, STATUS_COL, _("ERROR"));
+        m_listViewFiles->SetItemTextColour(file.listRow, wxColour("red"));
         break;
     }
     default:
-        m_listViewFiles->SetItem(listRow, STATUS_COL, _("Unknown error"));
-        m_listViewFiles->SetItemTextColour(listRow, wxColour("grey"));
+        m_listViewFiles->SetItem(file.listRow, STATUS_COL, _("Unknown error"));
+        m_listViewFiles->SetItemTextColour(file.listRow, wxColour("grey"));
     }
-    if (m_ffmpegProcessList.size() > 0)
-        m_ffmpegProcessList.pop_front();
+}
 
-    if (m_ffmpegProcessList.size() > 0)
-    {
-        Convert();
-    }
-    else
-    {
-        m_buttonConvert->Enable();
-        m_buttonClearCancel->SetLabel(_("Clear"));
-        m_buttonClearCancel->Bind(wxEVT_BUTTON, &FrameMain::OnClear, this);
-    }
+void FrameMain::OnBatchEnd()
+{
+    m_buttonConvert->Enable();
+    m_buttonClearCancel->SetLabel(_("Clear"));
+    m_buttonClearCancel->Bind(wxEVT_BUTTON, &FrameMain::OnClear, this);
 }
 
 void FrameMain::OnResize(wxSizeEvent &event)

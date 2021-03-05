@@ -1,5 +1,10 @@
 #include "Converter.h"
 
+Converter::Converter()
+{
+    this->Bind(wxEVT_END_PROCESS, &Converter::OnConversionEnd, this);
+}
+
 wxString Converter::GetResourcesDir()
 {
 #ifdef __APPLE__
@@ -41,29 +46,9 @@ void Converter::Convert()
 
 void Converter::OnConversionEnd(wxProcessEvent &event)
 {
-    const auto listRow = m_ffmpegProcessList.front().listRow;
-    const int STATUS_COL = 1;
-    switch (event.GetExitCode())
-    {
-    case 0:
-    {
-        // DONE
-        break;
-    }
-    case -1:
-    {
-        // CANCELED
-        m_ffmpegProcessList.clear();
-        break;
-    }
-    case 1:
-    {
-        // ERROR
-        break;
-    }
-        // default:
-        // Unknown Error
-    }
+    auto file = m_ffmpegProcessList.front();
+    file.status = event.GetExitCode();
+    m_callbackFileStatus(file);
     if (m_ffmpegProcessList.size() > 0)
         m_ffmpegProcessList.pop_front();
 
@@ -73,25 +58,31 @@ void Converter::OnConversionEnd(wxProcessEvent &event)
     }
     else
     {
-        //! BATCH ENDED
-        //? use callback
+        m_callbackBatchEnd();
     }
 }
-void Converter::CreateProcessQueueAndConvert()
+
+void Converter::SetListAndConvert(std::list<Process> processList)
 {
+    m_ffmpegProcessList = processList;
+    Convert();
 }
 
 void Converter::Cancel()
 {
     if ((m_ffmpeg != nullptr) && (m_ffmpeg->Exists(m_ffmpegPID)))
     {
-        wxKillError *err;
-        auto isKilled = wxKill(m_ffmpegPID, wxSIGTERM, err);
+        wxKillError err;
+        auto isKilled = wxKill(m_ffmpegPID, wxSIGTERM, &err);
         // TODO: delete residue?
     }
 }
 
-void Converter::SetCallback(std::function<void(std::list<Process>)> callback)
+void Converter::SetFileStatusCallback(std::function<void(Process process)> callback)
 {
-    m_callback = callback;
+    m_callbackFileStatus = callback;
+}
+void Converter::SetBatchEndCallback(std::function<void()> callback)
+{
+    m_callbackBatchEnd = callback;
 }
