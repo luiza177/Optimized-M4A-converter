@@ -5,33 +5,21 @@
       "name": "(lldb-mac) Launch",
       "type": "lldb",
       "request": "launch",
-<<<<<<< HEAD
       "program": "${workspaceFolder}/build/subprojects/Build/optimized_m4a_converter_core/Optimized_M4A_Converter.app",
-=======
-      "program": "${workspaceFolder}/build/subprojects/Build/optimized_m4a_converter_core/Optimized_m4a_converter.app",
->>>>>>> refs/remotes/origin/main
       "preLaunchTask": "Build with CMake"
     },
     {
       "name": "(lldb-linux) Launch",
       "type": "lldb",
       "request": "launch",
-<<<<<<< HEAD
       "program": "${workspaceFolder}/build/subprojects/Build/optimized_m4a_converter_core/Optimized_M4A_Converter",
-=======
-      "program": "${workspaceFolder}/build/subprojects/Build/optimized_m4a_converter_core/Optimized_m4a_converter",
->>>>>>> refs/remotes/origin/main
       "preLaunchTask": "Build with CMake"
     },
     {
       "name": "(msvc) Launch",
       "type": "cppvsdbg",
       "request": "launch",
-<<<<<<< HEAD
       "program": "${workspaceFolder}\\build\\subprojects\\Build\\optimized_m4a_converter_core\\Debug\\Optimized_M4A_Converter.exe", // or Release
-=======
-      "program": "${workspaceFolder}\\build\\subprojects\\Build\\optimized_m4a_converter_core\\Debug\\Optimized_m4a_converter.exe",
->>>>>>> refs/remotes/origin/main
       "preLaunchTask": "Build with CMake"
     }
   ]

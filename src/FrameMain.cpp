@@ -3,7 +3,11 @@
 FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(nullptr, wxID_ANY, title, pos, size)
 {
+#ifdef __APPLE__
     SetMinSize(wxSize(500, 200)); //? Move to panel creation
+#else
+    SetMinSize(wxSize(500, 300)); //? Move to panel creation
+#endif
 
     // menu bar [wxMenuBar, wxMenu, (wxMenuItem)]
     wxMenu *menuFile = new wxMenu;
@@ -227,8 +231,15 @@ void FrameMain::OnBatchEnd()
 void FrameMain::OnResize(wxSizeEvent &event)
 {
     event.Skip();
-    auto windowWidth = GetSize().GetWidth();
-    m_listViewFiles->SetColumnWidth(0, windowWidth - 100);
+    if (m_listViewFiles)
+    {
+        auto windowWidth = GetSize().GetWidth();
+#ifdef __APPLE__
+        m_listViewFiles->SetColumnWidth(0, windowWidth - 100);
+#else
+        m_listViewFiles->SetColumnWidth(0, windowWidth - 120);
+#endif
+    }
 }
 
 //FUTURE

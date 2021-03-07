@@ -7,7 +7,9 @@
             "command": "cmake",
             "args": [
                 "--build",
-                "build"
+                "build",
+                "--config",
+                "Release" //? Release / Debug
             ],
             "group": {
                 "kind": "build",
@@ -23,7 +25,7 @@
             "type": "shell",
             "command": "cmake",
             "args": [
-                "-DCMAKE_BUILD_TYPE=Release", // or Debug
+                //// "-DCMAKE_BUILD_TYPE=Debug",
                 "-S.",
                 "-Bbuild"
             ],

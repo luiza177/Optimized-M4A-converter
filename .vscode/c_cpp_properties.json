@@ -5,11 +5,11 @@
             "includePath": [
                 "${workspaceFolder}/src/**",
                 "${workspaceFolder}/include/**",
-                // "${workspaceFolder}/build/stage/include/wx-3.1/**",
-                // "${workspaceFolder}/build/subprojects/Build/wxWidgets_external/lib/wx/include/osx_cocoa-unicode-static-3.1/**",
-                "/usr/local/Cellar/boost/1.75.0_1/include/**",
-                "~/SDKs/wxWidgets-3.1.4/include/wx-3.1/**",
-                "~/SDKs/wxWidgets-3.1.4/lib/wx/include/osx_cocoa-unicode-static-3.1/**"
+                "${workspaceFolder}/build/stage/include/wx-3.1/**",
+                "${workspaceFolder}/build/subprojects/Build/wxWidgets_external/lib/wx/include/osx_cocoa-unicode-static-3.1/**"
+                // "/usr/local/Cellar/boost/1.75.0_1/include/**",
+                // "~/SDKs/wxWidgets-3.1.4/include/wx-3.1/**",
+                // "~/SDKs/wxWidgets-3.1.4/lib/wx/include/osx_cocoa-unicode-static-3.1/**"
             ],
             "defines": [
                 "__WXOSX_COCOA__",
@@ -24,10 +24,15 @@
             "configurationProvider": "ms-vscode.cmake-tools"
         },
         {
-            "name": "Windows",
+            "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/src/**",
-                "${workspaceFolder}/build/stage/include/**"
+                "${workspaceFolder}/include/**",
+                // "${workspaceFolder}/build/stage/include/**",
+                // "${workspaceFolder}/build/stage/include/msvc/**",
+                // "${workspaceFolder}/build/subprojects/Build/wxWidgets_external/lib/**",
+                "C:\\SDKs\\wxWidgets\\include\\msvc\\**",
+                "C:\\SDKs\\wxWidgets\\include\\**"
             ],
             "defines": [
                 "__WXMSW__",
