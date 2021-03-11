@@ -248,5 +248,4 @@ void FrameMain::OnResize(wxSizeEvent &event)
 
 //COSMETIC
 //TODO: padding listctrl ??
-//TODO: File column stretch on window resize (always width - 100, for other column)
 //TODO: ellipsize from left listctrl item

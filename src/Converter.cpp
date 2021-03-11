@@ -1,5 +1,9 @@
 #include "Converter.h"
 
+#include <wx/txtstrm.h>
+#include <wx/thread.h>
+#include <wx/filename.h>
+
 Converter::Converter()
 {
     this->Bind(wxEVT_END_PROCESS, &Converter::OnConversionEnd, this);
@@ -24,12 +28,26 @@ wxString Converter::GetResourcesDir()
     return wxString{".\\Resources\\"};
 }
 
+wxString Converter::GenerateOutputFileName(wxString inputFile)
+{
+    auto inputFileName = wxFileName(inputFile);
+#ifdef __APPLE__
+    auto outputFilePath = inputFileName.GetPath() + "/M4A/";
+#else
+    auto outputFilePath = inputFileName.GetPath() + "\\M4A\\";
+#endif
+    if (!wxDirExists(outputFilePath))
+    {
+        wxMkdir(outputFilePath);
+    }
+    return outputFilePath + inputFileName.GetName() + ".m4a";
+}
+
 wxString Converter::GenerateFfmpegCommand(wxString inputFile)
 {
     auto resourcesDir = GetResourcesDir();
-    auto outputFile = inputFile;
-    auto extension = inputFile.find_last_of('.');
-    outputFile.replace(extension, 4, ".m4a");
+    auto outputFile = GenerateOutputFileName(inputFile);
+
     auto ffmpegCommand = wxString{"ffmpeg -y -i \""}; // -y flag is always overwrite
     auto ffmpegFlags = wxString{"\" -movflags +faststart -c:a aac -b:a 128000 \""};
     ffmpegCommand.Prepend(resourcesDir);
@@ -40,8 +58,22 @@ wxString Converter::GenerateFfmpegCommand(wxString inputFile)
 void Converter::Convert()
 {
     m_ffmpeg = new wxProcess(this, ID_FFMPEG);
+    m_ffmpeg->Redirect();
+
     wxString ffmpegCommand = GenerateFfmpegCommand(m_ffmpegProcessList.front().path);
     m_ffmpegPID = wxExecute(ffmpegCommand, wxEXEC_ASYNC, m_ffmpeg);
+
+    wxThread *ffmpegCapture;
+    //? wxTimer or multithreading???
+    /*  
+    auto errorStream = m_ffmpeg->GetErrorStream();
+
+    wxTextInputStream errorTextStream(*errorStream);
+    while (!errorStream->Eof())
+    {
+        std::cout << "stderr = " << errorTextStream.ReadLine() << std::endl;
+    } 
+    */
 }
 
 void Converter::OnConversionEnd(wxProcessEvent &event)

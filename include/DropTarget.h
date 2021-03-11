@@ -29,7 +29,13 @@ private:
             {
                 validFilesList.Add(filePath);
             }
-            // else if (wxDirExists(filePath)) { add all valid files }
+            // TODO: deal with folders
+            else if (wxDirExists(filePath))
+            {
+                // add all valid files
+                //? wxSetWorkingDirectory??
+                //? wxString wxFindFirstFile(wxString)
+            }
         }
 
         if (validFilesList.IsEmpty())

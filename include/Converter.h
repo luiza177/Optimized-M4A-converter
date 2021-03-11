@@ -31,10 +31,11 @@ class Converter : public wxEvtHandler
 private:
     wxString GetResourcesDir();
     wxString GenerateFfmpegCommand(wxString inputFile);
+    wxString GenerateOutputFileName(wxString inputFile);
     void Convert();
     void OnConversionEnd(wxProcessEvent &event);
 
-    wxProcess *m_ffmpeg = nullptr;
+    wxProcess *m_ffmpeg = nullptr; //TODO: does this need to be a pointer?
     long m_ffmpegPID;
     std::list<Process> m_ffmpegProcessList;
 
@@ -50,5 +51,4 @@ public:
     void SetBatchEndCallback(std::function<void()> callback);
 };
 
-// clang-format off
 #endif

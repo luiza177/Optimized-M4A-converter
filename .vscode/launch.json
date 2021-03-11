@@ -19,8 +19,9 @@
       "name": "(msvc) Launch",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}\\build\\subprojects\\Build\\optimized_m4a_converter_core\\Debug\\Optimized_M4A_Converter.exe", // or Release
-      "preLaunchTask": "Build with CMake"
+      "program": "${workspaceFolder}\\build\\subprojects\\Build\\optimized_m4a_converter_core\\Debug\\Optimized_m4a_converter.exe",
+      "preLaunchTask": "Build with CMake",
+      "cwd": "${workspaceFolder}\\build\\subprojects\\Build\\optimized_m4a_converter_core\\Debug\\"
     }
   ]
 }
