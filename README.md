@@ -12,11 +12,12 @@ Requires [FFMPEG executable](http://ffmpeg.org/download.html) to be downloaded a
 ## Roadmap
 
 - Output files in their own `M4A` folder **--- DONE** _(needs to be tested on Windows)_
-- Ability to cancel entire batch. **--- DONE**
+- Ability to cancel entire batch **--- DONE**
+- Ability to drag and drop folders **--- DONE** _(needs to be tested on Windows)_
 - Progress bar
 - Aesthetic improvements **--- DONE**(?)
-- Change destination folder
 - Settings menu (eg. configure bit rate, etc)
+- Change destination folder
 - (?) "Quick mode" - dragging and droping files automatically converts them to predefined settings
 
 ## Acknowledgments

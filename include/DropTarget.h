@@ -29,12 +29,28 @@ private:
             {
                 validFilesList.Add(filePath);
             }
-            // TODO: deal with folders
             else if (wxDirExists(filePath))
             {
-                // add all valid files
-                //? wxSetWorkingDirectory??
-                //? wxString wxFindFirstFile(wxString)
+#ifdef __APPLE__
+                auto dirFile = wxFindFirstFile(filePath + "/*.wav", wxFILE);
+#else
+                auto dirFdirFle = wxFindFirstFile(filePath + "\\*.wav", wxFILE);
+#endif
+                while (!dirFile.empty())
+                {
+                    validFilesList.Add(dirFile);
+                    dirFile = wxFindNextFile();
+                }
+#ifdef __APPLE__
+                dirFile = wxFindFirstFile(filePath + "/*.m4a", wxFILE);
+#else
+                dirFile = wxFindFirstFile(filePath + "\\*.m4a", wxFILE);
+#endif
+                while (!dirFile.empty())
+                {
+                    validFilesList.Add(dirFile);
+                    dirFile = wxFindNextFile();
+                }
             }
         }
 
