@@ -34,7 +34,7 @@ private:
 #ifdef __APPLE__
                 auto dirFile = wxFindFirstFile(filePath + "/*.wav", wxFILE);
 #else
-                auto dirFdirFle = wxFindFirstFile(filePath + "\\*.wav", wxFILE);
+                auto dirFile = wxFindFirstFile(filePath + "\\*.wav", wxFILE);
 #endif
                 while (!dirFile.empty())
                 {
