@@ -9,7 +9,6 @@
 #include <wx/dnd.h>
 #include <wx/filefn.h>
 #include <functional>
-// #include <boost/filesystem.hpp>
 
 class DropTarget : public wxFileDropTarget
 {

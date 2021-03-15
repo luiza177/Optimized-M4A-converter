@@ -1,6 +1,11 @@
 #ifndef FRAMEMAIN_H
 #define FRAMEMAIN_H
 
+#include <wx/wxprec.h>
+#ifndef WX_PRECOMP
+#include <wx/wx.h>
+#endif
+
 #include "DropTarget.h"
 #include "Converter.h"
 
@@ -10,6 +15,8 @@
 
 #include <set>
 #include <list>
+
+#include <cmath>
 
 enum
 {
@@ -24,10 +31,9 @@ public:
     void FillListView();
     void OnConversionEnd(Process file);
     void OnBatchEnd();
+    void UpdateProgress(double percent);
 
 private:
-    wxString GetResourcesDir(); // to new class
-
     void OnResize(wxSizeEvent &event);
     void OnConvert(wxCommandEvent &event);
     void OnOpen(wxCommandEvent &event);
@@ -37,13 +43,13 @@ private:
     void OnAbout(wxCommandEvent &event);
     void OnKeyDown(wxKeyEvent &event);
     void UpdateStatusBar();
-    void CreateProcessQueue(); // calls convert() in new class?
+    void CreateProcessQueue();
     void AddToValidFileList(wxArrayString files);
 
     wxListView *m_listViewFiles = nullptr;
     wxButton *m_buttonConvert = nullptr;
     wxButton *m_buttonClearCancel = nullptr;
-    Converter *m_converter = nullptr;
+    Converter m_converter;
 
     std::set<wxString> m_validFileList;
 

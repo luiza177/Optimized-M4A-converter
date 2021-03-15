@@ -65,9 +65,9 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
     SetStatusText("0 files");
 
     // converter
-    m_converter = new Converter();
-    m_converter->SetFileStatusCallback(std::bind(&FrameMain::OnConversionEnd, this, std::placeholders::_1));
-    m_converter->SetBatchEndCallback(std::bind(&FrameMain::OnBatchEnd, this));
+    m_converter.SetFileStatusCallback(std::bind(&FrameMain::OnConversionEnd, this, std::placeholders::_1));
+    m_converter.SetBatchEndCallback(std::bind(&FrameMain::OnBatchEnd, this));
+    m_converter.SetUpdateProgressCallback(std::bind(&FrameMain::UpdateProgress, this, std::placeholders::_1));
 }
 
 void FrameMain::OnExit(wxCommandEvent &event)
@@ -78,7 +78,7 @@ void FrameMain::OnExit(wxCommandEvent &event)
 void FrameMain::OnAbout(wxCommandEvent &event)
 {
     // TODO: elaborate
-    wxMessageBox(_("This is a WAV to AAC converter that produces optimized M4A/AAC files"),
+    wxMessageBox(_("This is a simple WAV to AAC converter that produces optimized M4A/AAC files"),
                  _("About Optimized M4A Converter"),
                  wxOK | wxICON_INFORMATION);
 }
@@ -94,7 +94,7 @@ void FrameMain::CreateProcessQueue()
         process.path = m_listViewFiles->GetItemText(listRow);
         processList.push_back(process);
     }
-    m_converter->SetListAndConvert(processList);
+    m_converter.SetListAndConvert(processList);
 }
 
 void FrameMain::OnConvert(wxCommandEvent &event)
@@ -124,7 +124,7 @@ void FrameMain::OnClear(wxCommandEvent &event)
 
 void FrameMain::OnCancel(wxCommandEvent &event)
 {
-    m_converter->Cancel();
+    m_converter.Cancel();
 }
 
 void FrameMain::OnOpen(wxCommandEvent &event)
@@ -242,9 +242,16 @@ void FrameMain::OnResize(wxSizeEvent &event)
     }
 }
 
+void FrameMain::UpdateProgress(double percent)
+{
+    int rounded = static_cast<int>(ceil(percent));
+    auto txt = wxString::Format(wxT("%d%%"), rounded);
+    SetStatusText(txt);
+}
+
 //FUTURE
-//TODO: progress bar/wxGauge --> capture stderr
-//TODO: create folder for output //? Use Boost for file system?
+//TODO: progress bar/wxGauge
+//TODO: Settings window
 
 //COSMETIC
 //TODO: padding listctrl ??
