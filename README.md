@@ -14,7 +14,7 @@ Requires [FFMPEG executable](http://ffmpeg.org/download.html) to be downloaded a
 - Output files in their own `M4A` folder **--- DONE**
 - Ability to cancel entire batch **--- DONE**
 - Ability to drag and drop folders **--- DONE**
-- Progress bar
+- Progress bar **--- DONE** _(Needs to be tested on Windows)_
 - Aesthetic improvements **--- DONE**(?)
 - Settings menu (eg. configure bit rate, etc)
 - Change destination folder

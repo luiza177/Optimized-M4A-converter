@@ -43,12 +43,15 @@ private:
     void OnAbout(wxCommandEvent &event);
     void OnKeyDown(wxKeyEvent &event);
     void UpdateStatusBar();
+    void CreateProgressBar();
     void CreateProcessQueue();
     void AddToValidFileList(wxArrayString files);
 
     wxListView *m_listViewFiles = nullptr;
     wxButton *m_buttonConvert = nullptr;
     wxButton *m_buttonClearCancel = nullptr;
+    wxStatusBar *m_statusBar = nullptr;
+    wxGauge *m_progressBar = nullptr;
     Converter m_converter;
 
     std::set<wxString> m_validFileList;

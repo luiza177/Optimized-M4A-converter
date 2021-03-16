@@ -61,8 +61,11 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
     dropTarget->SetCallback(std::bind(&FrameMain::AddToValidFileList, this, std::placeholders::_1)); // can't just say FrameMain::FillListView
 
     // status bar
-    CreateStatusBar();
-    SetStatusText("0 files");
+    CreateStatusBar(2); //TODO: create member variable for progress bar wxGauge
+    m_statusBar = GetStatusBar();
+    int widths[] = {-1, 100};
+    m_statusBar->SetStatusWidths(2, widths);
+    SetStatusText(_("0 files"));
 
     // converter
     m_converter.SetFileStatusCallback(std::bind(&FrameMain::OnConversionEnd, this, std::placeholders::_1));
@@ -86,10 +89,10 @@ void FrameMain::OnAbout(wxCommandEvent &event)
 void FrameMain::CreateProcessQueue()
 {
     std::list<Process> processList;
-    for (int row = 0; row < m_listViewFiles->GetItemCount(); ++row)
+    for (auto row = 0; row < m_listViewFiles->GetItemCount(); ++row)
     {
         auto listRow = static_cast<long>(row);
-        Process process = Process{};
+        auto process = Process{};
         process.listRow = listRow;
         process.path = m_listViewFiles->GetItemText(listRow);
         processList.push_back(process);
@@ -99,6 +102,11 @@ void FrameMain::CreateProcessQueue()
 
 void FrameMain::OnConvert(wxCommandEvent &event)
 {
+    if (m_progressBar == nullptr)
+    {
+        CreateProgressBar();
+    }
+
     if (m_listViewFiles->GetItemCount() > 0)
     {
         m_buttonConvert->Disable();
@@ -119,6 +127,11 @@ void FrameMain::OnClear(wxCommandEvent &event)
         m_listViewFiles->DeleteAllItems();
         m_validFileList.clear();
         UpdateStatusBar();
+    }
+    if (m_progressBar)
+    {
+        delete m_progressBar;
+        m_progressBar = nullptr;
     }
 }
 
@@ -226,6 +239,17 @@ void FrameMain::OnBatchEnd()
     m_buttonConvert->Enable();
     m_buttonClearCancel->SetLabel(_("Clear"));
     m_buttonClearCancel->Bind(wxEVT_BUTTON, &FrameMain::OnClear, this);
+    UpdateStatusBar();
+}
+
+void FrameMain::CreateProgressBar()
+{
+    auto rect = wxRect();
+    m_statusBar->GetFieldRect(1, rect);
+    auto progressBarSize = rect.GetSize();
+    progressBarSize.SetWidth(progressBarSize.GetWidth() - 10);
+    auto progressBarPosition = rect.GetPosition();
+    m_progressBar = new wxGauge(m_statusBar, wxID_ANY, 100, progressBarPosition, progressBarSize, wxGA_SMOOTH);
 }
 
 void FrameMain::OnResize(wxSizeEvent &event)
@@ -240,6 +264,13 @@ void FrameMain::OnResize(wxSizeEvent &event)
         m_listViewFiles->SetColumnWidth(0, windowWidth - 120);
 #endif
     }
+    if (m_progressBar)
+    {
+        auto rect = wxRect();
+        m_statusBar->GetFieldRect(1, rect);
+        auto progressBarPosition = rect.GetPosition();
+        m_progressBar->SetPosition(progressBarPosition);
+    }
 }
 
 void FrameMain::UpdateProgress(double percent)
@@ -247,12 +278,13 @@ void FrameMain::UpdateProgress(double percent)
     int rounded = static_cast<int>(ceil(percent));
     auto txt = wxString::Format(wxT("%d%%"), rounded);
     SetStatusText(txt);
+    m_progressBar->SetValue(percent);
 }
 
 //FUTURE
-//TODO: progress bar/wxGauge
 //TODO: Settings window
 
 //COSMETIC
+//TODO: batch progress bar?
 //TODO: padding listctrl ??
 //TODO: ellipsize from left listctrl item
