@@ -72,8 +72,6 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
     m_converter.SetFileStatusCallback(std::bind(&FrameMain::OnConversionEnd, this, std::placeholders::_1));
     m_converter.SetBatchEndCallback(std::bind(&FrameMain::OnBatchEnd, this));
     m_converter.SetUpdateProgressCallback(std::bind(&FrameMain::UpdateProgress, this, std::placeholders::_1));
-
-    std::cout << "Thread ID (MainThread): " << wxThread::GetCurrentId() << std::endl;
 }
 
 void FrameMain::OnExit(wxCommandEvent &event)
@@ -299,7 +297,6 @@ void FrameMain::OnResize(wxSizeEvent &event)
 
 void FrameMain::UpdateProgress(double percent)
 {
-    std::cout << "Thread ID (UpdateProgress): " << wxThread::GetCurrentId() << std::endl;
     auto rounded = static_cast<int>(ceil(percent));
     auto txt = wxString::Format(wxT("%d%%"), rounded);
     SetStatusText(txt);

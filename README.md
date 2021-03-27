@@ -16,7 +16,7 @@ Requires [FFMPEG executable](http://ffmpeg.org/download.html) to be downloaded a
 - Ability to drag and drop folders **--- DONE**
 - Progress bar **--- DONE**
 - Aesthetic improvements **--- DONE**(?)
-- Settings menu (eg. configure bit rate, etc) **--- DONE** _Needs to be tested on Windows_
+- Settings menu (eg. configure bit rate, etc) **--- DONE** _(Needs to be tested on Windows)_
 - Change destination folder
 - (?) "Quick mode" - dragging and droping files automatically converts them to predefined settings
 
