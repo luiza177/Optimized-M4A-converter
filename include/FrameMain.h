@@ -8,12 +8,16 @@
 
 #include "DropTarget.h"
 #include "Converter.h"
+#include "SettingsDialog.h"
 
 #include <wx/filedlg.h>
 #include <wx/listctrl.h>
+#include <wx/propdlg.h>
 #include <wx/process.h>
+#include <wx/choice.h>
+#include <wx/config.h>
 
-#include <set>
+#include <set> //TODO: unordered_set?
 #include <list>
 
 #include <cmath>
@@ -21,7 +25,8 @@
 enum
 {
     ID_Convert = wxID_LAST + 1,
-    ID_Clear
+    ID_Clear,
+    ID_Reset
 };
 
 class FrameMain : public wxFrame
@@ -37,6 +42,7 @@ private:
     void OnResize(wxSizeEvent &event);
     void OnConvert(wxCommandEvent &event);
     void OnOpen(wxCommandEvent &event);
+    void OnPreferences(wxCommandEvent &event);
     void OnClear(wxCommandEvent &event);
     void OnCancel(wxCommandEvent &event);
     void OnExit(wxCommandEvent &event);
@@ -46,6 +52,7 @@ private:
     void CreateProgressBar();
     void CreateProcessQueue();
     void AddToValidFileList(wxArrayString files);
+    std::unique_ptr<wxConfig> GetConfig();
 
     wxListView *m_listViewFiles = nullptr;
     wxButton *m_buttonConvert = nullptr;

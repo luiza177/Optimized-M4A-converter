@@ -9,7 +9,7 @@
                 "--build",
                 "build",
                 "--config",
-                "Release" //? Release / Debug
+                "Debug" //? Release / Debug
             ],
             "group": {
                 "kind": "build",

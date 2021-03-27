@@ -14,6 +14,7 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
     menuFile->Append(ID_Convert, _("&Convert...\tCtrl-Shift-C"), _("Convert shown files")); // "\t" tells a shortcut will follow
     menuFile->Append(wxID_OPEN, _("&Open...\tCtrl-O"), _("Select files to be converted"));
     menuFile->AppendSeparator();
+    menuFile->Append(wxID_PREFERENCES, _("&Preferences...\tCtrl-,"), _("Change settings"));
     menuFile->Append(wxID_EXIT); // doesn't have default shortcut on Windows
 
     wxMenu *menuHelp = new wxMenu;
@@ -71,6 +72,8 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
     m_converter.SetFileStatusCallback(std::bind(&FrameMain::OnConversionEnd, this, std::placeholders::_1));
     m_converter.SetBatchEndCallback(std::bind(&FrameMain::OnBatchEnd, this));
     m_converter.SetUpdateProgressCallback(std::bind(&FrameMain::UpdateProgress, this, std::placeholders::_1));
+
+    std::cout << "Thread ID (MainThread): " << wxThread::GetCurrentId() << std::endl;
 }
 
 void FrameMain::OnExit(wxCommandEvent &event)
@@ -80,6 +83,7 @@ void FrameMain::OnExit(wxCommandEvent &event)
 
 void FrameMain::OnAbout(wxCommandEvent &event)
 {
+    event.Skip();
     // TODO: elaborate
     wxMessageBox(_("This is a simple WAV to AAC converter that produces optimized M4A/AAC files"),
                  _("About Optimized M4A Converter"),
@@ -100,8 +104,18 @@ void FrameMain::CreateProcessQueue()
     m_converter.SetListAndConvert(processList);
 }
 
+void FrameMain::OnPreferences(wxCommandEvent &event)
+{
+    event.Skip();
+
+    ConverterConfig converterConfig;
+    SettingsDialog settingsDialog(converterConfig, this, wxID_ANY, "Settings");
+    settingsDialog.ShowModal();
+}
+
 void FrameMain::OnConvert(wxCommandEvent &event)
 {
+    event.Skip();
     if (m_progressBar == nullptr)
     {
         CreateProgressBar();
@@ -111,7 +125,13 @@ void FrameMain::OnConvert(wxCommandEvent &event)
     {
         m_buttonConvert->Disable();
         m_buttonClearCancel->SetLabel(_("Cancel"));
+        m_buttonClearCancel->Unbind(wxEVT_BUTTON, &FrameMain::OnClear, this);
         m_buttonClearCancel->Bind(wxEVT_BUTTON, &FrameMain::OnCancel, this);
+
+        ConverterConfig converterConfig{};
+        auto bitrate = converterConfig.GetBitrate();
+        m_converter.SetBitrate(bitrate);
+
         CreateProcessQueue();
     }
     else
@@ -122,6 +142,7 @@ void FrameMain::OnConvert(wxCommandEvent &event)
 
 void FrameMain::OnClear(wxCommandEvent &event)
 {
+    event.Skip();
     if (m_listViewFiles->GetItemCount() > 0)
     {
         m_listViewFiles->DeleteAllItems();
@@ -137,11 +158,13 @@ void FrameMain::OnClear(wxCommandEvent &event)
 
 void FrameMain::OnCancel(wxCommandEvent &event)
 {
+    event.Skip();
     m_converter.Cancel();
 }
 
 void FrameMain::OnOpen(wxCommandEvent &event)
 {
+    event.Skip();
     wxFileDialog openFileDialog(this,
                                 _("Select files to be converted"),
                                 "",
@@ -238,6 +261,7 @@ void FrameMain::OnBatchEnd()
 {
     m_buttonConvert->Enable();
     m_buttonClearCancel->SetLabel(_("Clear"));
+    m_buttonClearCancel->Unbind(wxEVT_BUTTON, &FrameMain::OnCancel, this);
     m_buttonClearCancel->Bind(wxEVT_BUTTON, &FrameMain::OnClear, this);
     UpdateStatusBar();
 }
@@ -275,16 +299,13 @@ void FrameMain::OnResize(wxSizeEvent &event)
 
 void FrameMain::UpdateProgress(double percent)
 {
-    int rounded = static_cast<int>(ceil(percent));
+    std::cout << "Thread ID (UpdateProgress): " << wxThread::GetCurrentId() << std::endl;
+    auto rounded = static_cast<int>(ceil(percent));
     auto txt = wxString::Format(wxT("%d%%"), rounded);
     SetStatusText(txt);
     m_progressBar->SetValue(percent);
 }
 
-//FUTURE
-//TODO: Settings window
-
 //COSMETIC
 //TODO: batch progress bar?
 //TODO: padding listctrl ??
-//TODO: ellipsize from left listctrl item

@@ -44,6 +44,7 @@ private:
     long m_ffmpegPID;
     std::list<Process> m_ffmpegProcessList;
     wxTimeSpan m_currentFileDuration;
+    wxString m_bitrate{"128000"};
 
     std::function<void(Process process)> m_callbackFileStatus;
     std::function<void()> m_callbackBatchEnd;
@@ -57,6 +58,7 @@ public:
     void SetFileStatusCallback(std::function<void(Process process)> callback);
     void SetBatchEndCallback(std::function<void()> callback);
     void SetUpdateProgressCallback(std::function<void(double)> callback);
+    void SetBitrate(wxString &bitrate);
 };
 
 #endif

@@ -54,9 +54,9 @@ wxString Converter::GenerateFfmpegCommand(wxString inputFile)
 
     auto ffmpegCommand = wxString{"ffmpeg -y -i \""}; // -y flag is always overwrite
     // auto ffmpegCommand = wxString{"ffmpeg -hide_banner -y -i \""}; // -y flag is always overwrite
-    auto ffmpegFlags = wxString{"\" -movflags +faststart -c:a aac -b:a 128000 \""};
+    auto ffmpegFlags = wxString::Format("\" -movflags +faststart -c:a aac -b:a %s \"", m_bitrate);
     ffmpegCommand.Prepend(resourcesDir);
-    ffmpegCommand += inputFile + ffmpegFlags + outputFile + _("\"");
+    ffmpegCommand += inputFile + ffmpegFlags + outputFile + "\"";
     return ffmpegCommand;
 }
 
@@ -69,8 +69,6 @@ void Converter::Convert()
     m_ffmpegPID = wxExecute(ffmpegCommand, wxEXEC_ASYNC, m_ffmpeg);
 
     std::thread ffmpegCaptureThread([&]() {
-        //? wxTimer or multithreading???
-
         auto errorStream = m_ffmpeg->GetErrorStream();
 
         wxTextInputStream errorTextStream(*errorStream);
@@ -131,6 +129,11 @@ void Converter::SetBatchEndCallback(std::function<void()> callback)
 void Converter::SetUpdateProgressCallback(std::function<void(double)> callback)
 {
     m_callbackUpdateProgress = callback;
+}
+
+void Converter::SetBitrate(wxString &bitrate)
+{
+    m_bitrate = bitrate + "000";
 }
 
 void Converter::OnLineFeed(wxThreadEvent &event)
