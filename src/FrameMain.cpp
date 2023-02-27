@@ -62,7 +62,7 @@ FrameMain::FrameMain(const wxString &title, const wxPoint &pos, const wxSize &si
     dropTarget->SetCallback(std::bind(&FrameMain::AddToValidFileList, this, std::placeholders::_1)); // can't just say FrameMain::FillListView
 
     // status bar
-    CreateStatusBar(2); //TODO: create member variable for progress bar wxGauge
+    CreateStatusBar(2);
     m_statusBar = GetStatusBar();
     int widths[] = {-1, 100};
     m_statusBar->SetStatusWidths(2, widths);

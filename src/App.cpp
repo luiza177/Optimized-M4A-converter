@@ -17,7 +17,7 @@ wxBEGIN_EVENT_TABLE(FrameMain, wxFrame)
     EVT_MENU(wxID_EXIT, FrameMain::OnExit)
     EVT_MENU(wxID_ABOUT, FrameMain::OnAbout)
     EVT_MENU(wxID_OPEN, FrameMain::OnOpen)
-    EVT_MENU(wxID_PREFERENCES, FrameMain::OnPreferences) //TODO: switch to dynamic, disable when convert is clicked
+    EVT_MENU(wxID_PREFERENCES, FrameMain::OnPreferences)
     EVT_BUTTON(ID_Convert, FrameMain::OnConvert)
     EVT_SIZE(FrameMain::OnResize)
 wxEND_EVENT_TABLE()

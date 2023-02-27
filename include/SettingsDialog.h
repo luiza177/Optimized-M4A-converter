@@ -58,7 +58,7 @@ public:
 
         auto *sizerButtons = new wxBoxSizer(wxHORIZONTAL);
         auto *buttonReset = new wxButton(this, wxID_ANY, "Reset to Default");
-        buttonReset->Bind(wxEVT_BUTTON, [&](wxCommandEvent &event) { m_dropdownBitrate->SetSelection(2); }); // TODO: Events for other buttons?
+        buttonReset->Bind(wxEVT_BUTTON, [&](wxCommandEvent &event) { m_dropdownBitrate->SetSelection(2); });
         auto *buttonOk = new wxButton(this, wxID_OK);
         buttonOk->Bind(wxEVT_BUTTON, &SettingsDialog::OnOkClicked, this); //!
         auto *buttonCancel = new wxButton(this, wxID_CANCEL);
@@ -78,8 +78,5 @@ public:
 private:
     ConverterConfig &m_converterConfig;
 };
-
-// TODO: callbacks for for setting bitrate in converter?
-// TODO: how to store settings? wxConfig?
 
 #endif

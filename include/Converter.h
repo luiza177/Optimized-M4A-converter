@@ -33,6 +33,7 @@ class Converter : public wxEvtHandler
 private:
     wxString GetResourcesDir();
     wxString GenerateFfmpegCommand(wxString inputFile);
+    wxString GenerateAfconvertCommand(wxString inputFile);
     wxString GenerateOutputFileName(wxString inputFile);
     void Convert();
     void OnConversionEnd(wxProcessEvent &event);
@@ -40,7 +41,7 @@ private:
     wxTimeSpan ParseTimeSpan(wxString time);
     double CalcConvertedPercentage(wxTimeSpan convertedTime);
 
-    wxProcess *m_ffmpeg = nullptr; //TODO: does this need to be a pointer?
+    wxProcess *m_ffmpeg = nullptr; // TODO: does this need to be a pointer?
     long m_ffmpegPID;
     std::list<Process> m_ffmpegProcessList;
     wxTimeSpan m_currentFileDuration;

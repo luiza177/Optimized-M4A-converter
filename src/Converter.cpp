@@ -60,15 +60,31 @@ wxString Converter::GenerateFfmpegCommand(wxString inputFile)
     return ffmpegCommand;
 }
 
+wxString Converter::GenerateAfconvertCommand(wxString inputFile)
+{
+    // wxLogDebug("afconvert");
+    auto outputFile = GenerateOutputFileName(inputFile);
+
+    auto afconvertCommand = wxString{"afconvert "}; // -y flag is always overwrite
+    auto afconvertFlags = wxString::Format("-d aac -f m4af -s 0 -b %s \"", m_bitrate);
+    afconvertCommand += afconvertFlags + inputFile + "\" \"" + outputFile + "\"";
+    return afconvertCommand;
+}
+
 void Converter::Convert()
 {
     m_ffmpeg = new wxProcess(this, ID_FFMPEG);
     m_ffmpeg->Redirect();
 
+#ifdef __APPLE__
+    wxString ffmpegCommand = GenerateAfconvertCommand(m_ffmpegProcessList.front().path);
+#else
     wxString ffmpegCommand = GenerateFfmpegCommand(m_ffmpegProcessList.front().path);
+#endif
     m_ffmpegPID = wxExecute(ffmpegCommand, wxEXEC_ASYNC, m_ffmpeg);
 
-    std::thread ffmpegCaptureThread([&]() {
+    std::thread ffmpegCaptureThread([&]()
+                                    {
         auto errorStream = m_ffmpeg->GetErrorStream();
 
         wxTextInputStream errorTextStream(*errorStream);
@@ -78,8 +94,7 @@ void Converter::Convert()
             auto event = new wxThreadEvent(FFMPEG_THREAD_UPDATE);
             event->SetPayload(line);
             wxQueueEvent(this, event);
-        }
-    });
+        } });
     ffmpegCaptureThread.detach();
 }
 
@@ -147,13 +162,13 @@ void Converter::OnLineFeed(wxThreadEvent &event)
     auto durChar = line.Find(_("Duration: "));
     if (durChar != wxNOT_FOUND)
     {
-        auto totalDurationStr = line.SubString(durChar + DURATIONCHARCOUNT, durChar + DURATIONCHARCOUNT + TIMESTAMPCHARCOUNT); //HH:MM:SS.cc
+        auto totalDurationStr = line.SubString(durChar + DURATIONCHARCOUNT, durChar + DURATIONCHARCOUNT + TIMESTAMPCHARCOUNT); // HH:MM:SS.cc
         m_currentFileDuration = ParseTimeSpan(totalDurationStr);
     }
     auto updateChar = line.Find(_("time="));
     if (updateChar != wxNOT_FOUND)
     {
-        auto convertedTimeStr = line.SubString(updateChar + TIMEEQCHARCOUNT, updateChar + TIMEEQCHARCOUNT + TIMESTAMPCHARCOUNT); //HH:MM:SS.cc
+        auto convertedTimeStr = line.SubString(updateChar + TIMEEQCHARCOUNT, updateChar + TIMEEQCHARCOUNT + TIMESTAMPCHARCOUNT); // HH:MM:SS.cc
         auto convertedTime = ParseTimeSpan(convertedTimeStr);
         auto progress = CalcConvertedPercentage(convertedTime);
 
@@ -163,7 +178,7 @@ void Converter::OnLineFeed(wxThreadEvent &event)
 
 wxTimeSpan Converter::ParseTimeSpan(wxString time)
 {
-    //HH:MM:SS.cc
+    // HH:MM:SS.cc
     auto hourStr = time.SubString(0, 1);
     auto minuteStr = time.SubString(3, 4);
     auto secondStr = time.SubString(6, 7);
