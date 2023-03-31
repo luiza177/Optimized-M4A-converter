@@ -1,6 +1,6 @@
 # Optimized M4A Converter
 
-Uses wxWidgets to create a GUI for leveraging [FFMPEG](http://ffmpeg.org/)'s executable, in order to create **<u>optimized</u> M4A (AAC) files** from WAVs or other M4A files. For **MacOS 10.13+** and **Windows**.
+Uses wxWidgets to create a GUI for leveraging [FFMPEG](http://ffmpeg.org/)'s executable (Windows) or `afconvert` (MacOS), in order to create **<u>optimized</u> M4A (AAC) files** from WAVs or other M4A files. For **MacOS 10.13+** and **Windows**.
 
 ## Prerequisites
 
